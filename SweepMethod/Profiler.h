@@ -7,19 +7,19 @@
 using namespace std;
 using namespace std::chrono;
 
-// Позволяет объявить уникальный идентификатор в пределах заданного cpp-файла
+// Allows you to declare a unique identifier within a given cpp file
 #define UNIQ_ID(line) UNIQ_ID_IMPL(line)
 #define UNIQ_ID_IMPL(line) loc_var_##line
 #define LOG_DURATION(message) LogDuration UNIQ_ID(__LINE__){message};
 
 class LogDuration {
 private:
-	// Момент начала замера времени выполнения программы
+	// The moment of the beginning of the measurement of the program execution time
 	steady_clock::time_point start;
 	string message;
 
 public:
-	// Добавление explicit - защита от неявного преобразования string в LogDuration
+	// Adding explicit - protection against implicit conversion string to LogDuration
 	explicit LogDuration(const string& msg = "") : start(steady_clock::now()), message(msg + ": ")
 	{
 	}
