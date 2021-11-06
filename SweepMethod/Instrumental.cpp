@@ -5,10 +5,10 @@
 
 std::tuple<int, int, int, int> Instrumental::prepareData() {
 	do {
-		std::cout << "Введите размерность (N) = ";
+		std::cout << "Enter the dimension (N) = ";
 		std::cin >> N;
 
-		std::cout << "Введите количество вычислительных узлов (THREADNUM) = ";
+		std::cout << "Enter the number of compute nodes (THREAD_NUM) = ";
 		std::cin >> THREAD_NUM;
 
 	} while (!checkData());
@@ -21,24 +21,25 @@ std::tuple<int, int, int, int> Instrumental::prepareData() {
 
 bool Instrumental::checkData() {
 	if (N < 7) {
-		std::cout << "Размерность " << N << " слишком мала\n";
-		std::cout << "Параллельные вычисления для нее не эффективны\n";
-		std::cout << "Введите бОльшую размерность N\n\n";
+		std::cout << "Dimension (N = " << N << ") is too small\n"
+				  << "Parallel computing is not effective for it\n"
+				  << "Enter a larger dimension (N)\n\n";
 
 		return false;
 	}
 
 	if ((N / THREAD_NUM) < 3) {
-		std::cout << "Алгоритм нерабочий для пропорций размерности с количеством вычислительных узлов\n";
-		std::cout << "Введите бОльшую размерность, либо уменьшите количество вычислительных узлов\n\n";
+		std::cout << "The algorithm is not working for the proportions of the dimension (N) "
+			      << "with the number of computing nodes (THREAD_NUM)\n"
+				  << "Enter a larger dimension (N), or reduce the number of computing nodes (THREAD_NUM)\n\n";
 
 		return false;
 	}
 
 	vec div = findDivisors(N);
 	if (isPrime(N) || std::find(div.begin(), div.end(), THREAD_NUM) == div.end()) {
-		std::cout << "Невозможно разбить на одинаковые блоки размерность " << N << "\n";
-		std::cout << "Введите корректные значения N, THREADNUM\n\n";
+		std::cout << "It is impossible to split the dimension (N = "<< N << ") into the same blocks (BLOCK_SIZE)\n"
+				  << "Enter the correct values of dimension (N) and number of computing nodes (THREADNUM)\n\n";
 
 		return false;
 	}
@@ -74,7 +75,7 @@ vec Instrumental::findDivisors(int num) {
 	return res;
 }
 
-void Instrumental::printVec(const vec& a, const std::string& name) {
+void Instrumental::printVec(const vec& a, const str& name) {
 	if (a.size() < 30) {
 		std::cout << name << ":\n";
 		bool flag = true;
@@ -87,7 +88,7 @@ void Instrumental::printVec(const vec& a, const std::string& name) {
 	}
 }
 
-void Instrumental::printMatr(const matr& a, const std::string& name) {
+void Instrumental::printMatr(const matr& a, const str& name) {
 	if (a.size() < 30) {
 		bool first = true;
 
@@ -182,9 +183,9 @@ vec Instrumental::calcMatrVecMult(const matr& A, const vec& b) {
 	int n = A.size();
 	vec res(n);
 
-#pragma omp parallel shared(res, n)
+	#pragma omp parallel shared(res, n)
 	{
-#pragma omp for
+		#pragma omp for
 		for (int i = 0; i < n; i++)
 			for (int j = 0; j < n; j++)
 				res[i] += A[i][j] * b[j];

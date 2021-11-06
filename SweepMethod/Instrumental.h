@@ -11,6 +11,7 @@
 using matr = std::vector<std::vector<double>>;
 using vec = std::vector<double>;
 using pairs = std::pair<double, double>;
+using str = std::string;
 
 class Instrumental {
 private:
@@ -19,7 +20,7 @@ private:
 	// Preparing user data for parallel computing
 	std::tuple<int, int, int, int> prepareData();
 	
-	// Ñhecking for multiplicity of @N and @THREADNUM
+	// Checking for multiplicity of @N and @THREADNUM
 	bool checkData();
 	
 	// Finding all the divisors of @num
@@ -30,7 +31,7 @@ protected:
 
 	Instrumental() : N(8), THREAD_NUM(4), BLOCK_SIZE(2), CLASSIC_SIZE(6) {}
 
-	// Ñreating a vector from 0 to @N with dimension @N
+	// Creating a vector from 0 to @N with dimension @N
 	vec createVecN();
 
 	// Creating a vector with random values from 0 to 100 with dimension @N
@@ -62,8 +63,8 @@ protected:
 
 public:
 	// Printing a vector @a with @name
-	void printVec(const vec& a, const std::string& name);
+	void printVec(const vec& a, const str& name);
 
 	// Printing a matrix @a with @name
-	void printMatr(const matr& a, const std::string& name);
+	void printMatr(const matr& a, const str& name);
 };
