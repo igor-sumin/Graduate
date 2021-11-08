@@ -1,2 +1,2 @@
 # ParallelSweepMethod
-Parallel implementation sweep method from Numerical Methods
+*Parallel implementation sweep method from Numerical Methods*
