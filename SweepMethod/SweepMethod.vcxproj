@@ -118,6 +118,8 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <OpenMPSupport>true</OpenMPSupport>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -141,14 +143,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Instrumental.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ParallelSweepMethod.cpp" />
+    <ClCompile Include="SerialSweepMethod.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Instrumental.h" />
-    <ClInclude Include="NumericalMethodInstrumental.h" />
     <ClInclude Include="ParallelSweepMethod.h" />
     <ClInclude Include="Profiler.h" />
     <ClInclude Include="SerialSweepMethod.h" />
+    <ClInclude Include="AbstractSweepMethod.h" />
     <ClInclude Include="TestRunner.h" />
     <ClInclude Include="UnitTests.h" />
   </ItemGroup>

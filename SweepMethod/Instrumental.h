@@ -1,215 +1,89 @@
 #pragma once
 
-std::tuple<int, int, int, int> prepareData();
-bool checkData(int N, int THREADNUM);
-bool isPrime(int num);
-vec findDivisors(int num);
-void printVec(const vec& a, const std::string& name);
-void printMatr(const matr& a, const std::string& name);
-vec createVecN(int n);
-vec createVecRand(int n);
-matr createThirdDiagMatrI(int n);
-matr createMatr(int n, double a, double b, double c);
-vec calcMatrVecMult(const matr& A, const vec& b);
+#include <omp.h>
 
-// подготовка пользовательских данных к параллельным вычислениям
-std::tuple<int, int, int, int> prepareData() {
-	int N, THREADNUM, blockSize, classicSize;
+#include <iostream>
+#include <vector>
+#include <tuple>
+#include <random>
+#include <functional>
+#include <algorithm>
+#include <numeric>
+
+using matr = std::vector<std::vector<double>>;
+using vec = std::vector<double>;
+using pairs = std::pair<double, double>;
+using str = std::string;
+
+
+class Instrumental {
+private:
+	bool isPrime(int num) const;
 	
-	do {
-		// N = 8;
-		// THREADNUM = 4;
+	// Finding all the divisors of @num
+	vec findDivisors(int num);
 
-		std::cout << "Введите размерность (N) = ";
-		std::cin >> N;
+protected:
+	int N, THREAD_NUM, BLOCK_SIZE, CLASSIC_SIZE;
 
-		std::cout << "Введите количество вычислительных узлов (THREADNUM) = ";
-		std::cin >> THREADNUM;
+public:
+	// Instrumental() : N(8), THREAD_NUM(4), BLOCK_SIZE(2), CLASSIC_SIZE(6) {}
+	Instrumental();
 
-	} while (!checkData(N, THREADNUM));
+	Instrumental(int n, int threadNum, int blockSize, int classicSize) 
+		: N(n), THREAD_NUM(threadNum), BLOCK_SIZE(blockSize), CLASSIC_SIZE(classicSize) {}
 
-	blockSize = N / THREADNUM;
-	classicSize = (THREADNUM - 1) * 2;
+	// Preparing user data for parallel computing
+	void prepareData();
 
-	return std::make_tuple(N, THREADNUM, blockSize, classicSize);
-}
+	// Checking for multiplicity of @N and @THREADNUM
+	bool checkData();
 
-// проверка на кратность N и THREADNUM
-bool checkData(int N, int THREADNUM) {
-	if (N < 7) {
-		std::cout << "Размерность " << N << " слишком мала\n";
-		std::cout << "Параллельные вычисления для нее не эффективны\n";
-		std::cout << "Введите бОльшую размерность N\n\n";
+	// Printing a vector @a with @name
+	static void printVec(const vec& a, const str& name);
 
-		return false;
-	}
+	// Printing a matrix @a with @name
+	static void printMatr(const matr& a, const str& name);
 
-	if ((N / THREADNUM) < 3) {
-		std::cout << "Алгоритм нерабочий для пропорций размерности с количеством вычислительных узлов\n";
-		std::cout << "Введите бОльшую размерность, либо уменьшите количество вычислительных узлов\n\n";
+	// Getting a grid with nodes
+	vec getX();
 
-		return false;
-	}
+	// Calculating the discrepancy
+	double getR(const vec & x, const vec & b);
 
-	vec div = findDivisors(N);
-	if (isPrime(N) || std::find(div.begin(), div.end(), THREADNUM) == div.end()) {
-		std::cout << "Невозможно разбить на одинаковые блоки размерность " << N << "\n";
-		std::cout << "Введите корректные значения N, THREADNUM\n\n";
+	// Calculating of the error estimate of the scheme
+	double getZ(const vec & u, const vec & v);
 
-		return false;
-	}
-	
-	return true;
-}
+	// Getting protected fields
+	std::tuple<int, int, int, int> getFields() const;
 
-// является ли число простым
-bool isPrime(int num) {
-	bool ok = true;
-	for (int i = 2; i <= num / 2; ++i) {
-		if (num % i == 0) {
-			ok = false;
-			break;
-		}
-	}
+	/*
+	 * Creating a tridiagonal matrix with dimension @N x @N
+	 *
+	 * side lower diagonal = @a
+	 * side upper diagonal = @b
+	 * main diagonal	   = @c
+	*/
+	matr createMatr(double a, double b, double c);
 
-	return ok;
-}
+	/*
+	 * Creating a tridiagonal matrix with dimension @N x @N
+	 *
+	 * side lower diagonal = 1
+	 * side upper diagonal = 2
+	 * main diagonal	   = 3
+	*/
+	matr createThirdDiagMatrI();
 
-// найти все делители числа
-vec findDivisors(int num) {
-	vec res;
+	// Creating a matrix with random values from 0 to 100 with dimension @N x @N
+	matr createThirdDiagMatrRand();
 
-	for (int i = 2; i <= sqrt(num); i++) {
-		if (num % i == 0) {
-			if (num / i != i) {
-				res.push_back(num / i);
-			}
+	// Matrix-vector multiplication : @A x @b
+	vec calcMatrVecMult(const matr& A, const vec& b);
 
-			res.push_back(i);
-		}
-	}
-	
-	return res;
-}
+	// Creating a vector from 0 to @N with dimension @N
+	vec createVecN();
 
-void printVec(const vec& a, const std::string& name) {
-	if (a.size() < 30) {
-		std::cout << name << ":\n";
-		bool flag = true;
-		for (int i = 0; i < a.size(); i++) {
-			if (!flag) {
-				std::cout << ", ";
-			} flag = false;
-			std::cout << a[i];
-		} std::cout << std::endl;
-	}
-}
-
-void printMatr(const matr& a, const std::string& name) {
-	if (a.size() < 30) {
-		bool first = true;
-
-		std::cout << name << ":\n";
-		for (int i = 0; i < a.size(); i++) {
-			first = true;
-			for (int j = 0; j < a[0].size(); j++) {
-				if (!first) {
-					std::cout << ", ";
-				} first = false;
-
-				printf("%8.3f", a[i][j]);
-			} printf("\n");
-		} std::cout << "\n";
-	}
-}
-
-vec createVecN(int n) {
-	vec a(n);
-	std::iota(a.begin(), a.end(), 0);
-
-	return a;
-}
-
-vec createVecRand(int n) {
-	std::mt19937 gen;
-	gen.seed(static_cast<unsigned int>(time(0)));
-	vec a(n);
-
-	#pragma omp parallel for
-	for (int i = 0; i < n; i++)
-		a[i] = gen() % 100;
-
-	return a;
-}
-
-matr createThirdDiagMatrI(int n) {
-	matr a(n, vec(n));
-
-	#pragma omp parallel for if (n > 500)
-	for (int i = 1; i < n; i++) {
-		for (int j = 0; j < n; j++) {
-			a[i][i] = 3.;
-			a[i][i - 1] = 1.;
-			a[i - 1][i] = 2.;
-		}
-	}
-
-	a[0][0] = 1.; a[n - 1][n - 1] = 1.;
-	a[0][1] = -0.5; a[n - 1][n - 2] = -0.5;
-
-	return a;
-}
-
-matr createMatr(int n, double a, double b, double c) {
-	matr res(n, vec(n));
-
-	#pragma omp parallel for if (n > 500)
-	for (int i = 1; i < n; i++) {
-		for (int j = 0; j < n; j++) {
-			res[i][i] = c;
-			res[i][i - 1] = b;
-			res[i - 1][i] = a;
-		}
-	}
-
-	res[0][0] = 1.; res[n - 1][n - 1] = 1.;
-	res[0][1] = 0.; res[n - 1][n - 2] = 0.;
-
-	return res;
-}
-
-matr createThirdDiagMatrRand(int n) {
-	std::mt19937 gen;
-	gen.seed(static_cast<unsigned int>(time(0)));
-	matr a(n, vec(n));
-
-	a[0][0] = gen() % 100;
-#pragma omp parallel for if (n > 500)
-	for (int i = 1; i < n; i++) {
-		for (int j = 0; j < n; j++) {
-			a[i][i] = gen() % 100;
-			a[i][i - 1] = gen() % 100;
-			a[i - 1][i] = gen() % 100;
-		}
-	}
-
-	return a;
-}
-
-
-
-// Матрично-векторное умножение
-vec calcMatrVecMult(const matr& A, const vec& b) {
-	int n = A.size();
-	vec res(n);
-
-	#pragma omp parallel shared(res, n)
-	{
-		#pragma omp for
-		for (int i = 0; i < n; i++)
-			for (int j = 0; j < n; j++)
-				res[i] += A[i][j] * b[j];
-	}
-
-	return res;
-}
+	// Creating a vector with random values from 0 to 100 with dimension @N
+	vec createVecRand();
+};
