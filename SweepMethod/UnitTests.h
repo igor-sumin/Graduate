@@ -101,7 +101,6 @@ public:
 
 	void test1() {
 		this->prepareDataForTest();
-		std::cout << "----------------------" << std::endl;
 
 		// Sequential implementation of the sweep method
 		{
@@ -127,7 +126,7 @@ public:
 				<< I.getR(I.calcMatrVecMult(A, x), B) << std::endl;
 		}
 
-		std::cout << "----------------------" << std::endl;
+		std::cout << std::endl;
 
 		// Parallel implementation of the run
 		{
@@ -141,13 +140,10 @@ public:
 			std::cout << "The scheme (SLAU) is solved with a discrepancy ||R|| = " 
 				<< I.getR(I.calcMatrVecMult(A, x), B) << std::endl;
 		}
-
-		std::cout << "----------------------" << std::endl;
 	}
 
 	void test2() {
 		this->prepareDataForTest();
-		std::cout << "----------------------" << std::endl;
 
 		// Sequential implementation of the run (with an exact solution)
 		{
@@ -168,13 +164,21 @@ public:
 
 	void execute() {
 		TestRunner testRunner;
+		str line = "-------------------------------";
 
-		/*
-		RUN_TEST(testRunner, test1);
-		RUN_TEST(testRunner, test2);
-		RUN_TEST(testRunner, testPrepareData);
-		*/
+		std::vector<std::function<void()>> tests = {
+			[this]() { this->testEnteredData(); },
+			[this]() { this->test1(); },
+			[this]() { this->test2(); },
+			[this]() { this->testSerialSweepMethod(); }
+		};
 
-		RUN_TEST(testRunner, [this]() { this->test1(); });
+		for (auto test : tests) {
+			std::cout << line << std::endl;
+
+			RUN_TEST(testRunner, test);
+
+			std::cout << line << std::endl;
+		}
 	}
 };
