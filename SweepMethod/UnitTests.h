@@ -4,101 +4,62 @@
 
 #include "TestRunner.h"
 #include "Profiler.h"
-
 #include "Instrumental.h"
+
+#include "SerialInstrumental.h"
 #include "SerialSweepMethod.h"
+
+#include "ParallelInstrumental.h"
 #include "ParallelSweepMethod.h"
 
 class UnitTests {
 private:
-	int N, threadNum, blockSize, classicSize;
+	size_t N; 
+
+	int threadNum, blockSize, classicSize;
 	matr A;
 	vec B;
-	Instrumental I;
 
-	void prepareDataForTest() {
-		A = I.createThirdDiagMatrI();
-		B = I.createVecN();
+	size_t node;
+	double h;
+	double a, c, b;
+	vec x, u;
 
-		tie(N, threadNum, blockSize, classicSize) = I.getFields();
+	void prepareParallelDataForTest() {
+		ParallelInstrumental P;
+
+		A = P.createThirdDiagMatrI();
+		B = P.createVecN();
+
+		tie(N, threadNum, blockSize, classicSize) = P.getAllFields();
+	}
+
+	void prepareSerialDataForTest(int n = 10) {
+		SerialInstrumental I(n);
+
+		tie(N, node, h, a, c, b, u) = I.getAllFields();
+		x = I.getGridNodes();
 	}
 
 public:
-	UnitTests() : N(10), threadNum(4), blockSize(4), classicSize(6) {}
-
 	void testEnteredData() {
 		std::cout << "Checking the correctness of the entered data\n";
 
 		{
-			Instrumental i(8, 4, -1, -1);
-			ASSERT(!i.checkData());
+			ParallelInstrumental pi(8, 4, -1, -1);
+			ASSERT(!pi.checkData());
 		}
 		{
-			Instrumental i(80, 10, -1, -1);
-			ASSERT(!i.checkData());
+			ParallelInstrumental pi(80, 10, -1, -1);
+			ASSERT(!pi.checkData());
 		}
 		{
-			Instrumental i(100, 10, -1, -1);
-			ASSERT(!i.checkData());
+			ParallelInstrumental pi(100, 10, -1, -1);
+			ASSERT(!pi.checkData());
 		}
 	}
 
-	void testSerialSweepMethod() {
-		std::cout << "Checking the correctness of the sequential sweep method\n";
-
-		int N, threadNum, blockSize, classicSize, n;
-		{
-			Instrumental instrumentalTest(10, 4, 4, 6);
-			std::tie(N, threadNum, blockSize, classicSize) = instrumentalTest.getFields();
-
-			double h = 1 / static_cast<double>(N);
-			vec x = instrumentalTest.getX();
-			double a = 12 / pow(h, 2);
-			double c = a * 2 + 5;
-
-			n = N - 2;
-			vec F(n);
-			vec A(n, a);
-			vec B(n, a);
-			vec C(n, c);
-			pairs mu = std::make_pair(10, 100);
-			pairs kappa = std::make_pair(0, 0);
-			pairs gamma = std::make_pair(1, 1);
-
-			// Private solution
-			SerialSweepMethod ssm(A, C, B, F, kappa, mu, gamma);
-			vec v = ssm.run();
-
-			// Exact solution
-			vec u(N);
-			for (int i = 0; i < N; i++) {
-				u[i] = 10 + 90 * pow(x[i], 2);
-			}
-
-			Instrumental::printVec(v, "v");
-			Instrumental::printVec(u, "u");
-
-			ASSERT_EQUAL(v, u);
-
-			// Numeric methods
-			matr res = instrumentalTest.createMatr(a, a, c);
-			Instrumental::printMatr(res, "res");
-
-			vec::iterator it = F.begin();
-			F.insert(it, mu.first);
-			it = F.end();
-			F.insert(--it, mu.second);
-
-			Instrumental::printVec(F, "fFull");
-
-			std::cout << "The scheme (SLAU) is solved with a discrepancy ||R|| = "
-				<< instrumentalTest.getR(instrumentalTest.calcMatrVecMult(res, v), F) << std::endl;
-
-			std::cout << "Estimation of the scheme error Z = "
-				<< instrumentalTest.getZ(u, v) << std::endl;
-		}
-	}
-
+	/* 
 	void test1() {
 		this->prepareDataForTest();
 
@@ -137,7 +98,7 @@ public:
 
 			Instrumental::printVec(x, "\nParallel x");
 
-			std::cout << "The scheme (SLAU) is solved with a discrepancy ||R|| = " 
+			std::cout << "The scheme (SLAU) is solved with a discrepancy ||R|| = "
 				<< I.getR(I.calcMatrVecMult(A, x), B) << std::endl;
 		}
 	}
@@ -155,9 +116,85 @@ public:
 				xi[i] = i * h;
 			}
 
-			/*
 			std::cout << "The scheme (SLAU) is solved with a discrepancy ||R|| = " << I.getR(calcMatrVecMult(A, x), B) << std::endl;
 			std::cout << "Estimation of the scheme error Z = " << I.getZ(u, x) << std::endl;
+		}
+	}
+	*/
+
+	void testModelTask() {
+		std::cout << "Modul 7. Model task for estimating computational error\n";
+
+		{
+			this->prepareSerialDataForTest(5);
+			ASSERT(node > 2);
+
+			for (size_t i = 0; i < node; i++) {
+				u[i] = 10 + 90 * x[i] * x[i];
+			}
+
+			Instrumental::printVec(x, "x");
+			Instrumental::printVec(u, "u");
+			print(h);
+
+			double total = 12. / (h * h);
+
+			a = total;
+			c = 2 * total + 5.;
+			b = total;
+
+			print(a);
+			print(b);
+			print(c);
+
+			vec Phi(node - 2);
+			for (size_t i = 0; i < node - 2; i++) {
+				Phi[i] = 450 * x[i + 1] * x[i + 1] - 2110.;
+			}
+
+			Instrumental::printVec(Phi, "phi");
+
+			// 
+			/*
+			size_t n = N - 2;
+			vec A(n, a);
+			vec B(n, b);
+			vec C(n, c);
+			pairs mu = std::make_pair(10., 100.);
+			pairs kappa = std::make_pair(0., 0.);
+			pairs gamma = std::make_pair(1, 1);
+
+			// Private solution
+			SerialSweepMethod ssm(A, C, B, Phi, kappa, mu, gamma);
+			vec v = ssm.run();
+
+			// Exact solution
+			vec u(N);
+			for (int i = 0; i < N; i++) {
+				u[i] = 10 + 90 * pow(x[i], 2);
+			}
+
+			Instrumental::printVec(v, "v");
+			Instrumental::printVec(u, "u");
+
+			ASSERT_EQUAL(v, u);
+
+			// Numeric methods
+			matr res = instrumentalTest.createMatr(a, a, c);
+			Instrumental::printMatr(res, "res");
+
+			vec::iterator it = F.begin();
+			F.insert(it, mu.first);
+			it = F.end();
+			F.insert(--it, mu.second);
+
+			Instrumental::printVec(F, "fFull");
+
+			std::cout << "The scheme (SLAU) is solved with a discrepancy ||R|| = "
+				<< instrumentalTest.getR(instrumentalTest.calcMatrVecMult(res, v), F) << std::endl;
+
+			std::cout << "Estimation of the scheme error Z = "
+				<< instrumentalTest.getZ(u, v) << std::endl;
 			*/
 		}
 	}
@@ -167,10 +204,10 @@ public:
 		str line = "-------------------------------";
 
 		std::vector<std::function<void()>> tests = {
-			[this]() { this->testEnteredData(); },
-			[this]() { this->test1(); },
-			[this]() { this->test2(); },
-			[this]() { this->testSerialSweepMethod(); }
+			[this]() {this->testModelTask();  }
+			// [this]() { this->testEnteredData(); },
+			// [this]() { this->test1(); },
+			// [this]() { this->test2(); },
 		};
 
 		for (auto test : tests) {
@@ -182,3 +219,4 @@ public:
 		}
 	}
 };
+
