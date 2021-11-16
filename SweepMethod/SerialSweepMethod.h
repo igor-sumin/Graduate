@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Instrumental.h"
+#include "SerialInstrumental.h"
 #include "AbstractSweepMethod.h"
 
 
-class SerialSweepMethod : public AbstractSweepMethod {
+class SerialSweepMethod : public SerialInstrumental, public AbstractSweepMethod {
 private:
 	int n;
 	vec a, c, b, f;
