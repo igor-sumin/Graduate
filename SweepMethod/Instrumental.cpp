@@ -1,6 +1,29 @@
 #include "Instrumental.h"
 
 
+void Instrumental::prepareData() {
+}
+
+bool Instrumental::checkData() const {
+	return true;
+}
+
+void Instrumental::setN(size_t n) {
+	N = n;
+}
+
+void Instrumental::setUV(vec& u_, vec& v_) {
+	Instrumental::printVec(u_, "u_");
+	Instrumental::printVec(v_, "v_");
+
+	u = u_;
+	v = v_;
+}
+
+std::tuple<size_t, size_t, vec, vec> Instrumental::getAllFields() const {
+	return std::make_tuple(N, node, u, v);
+}
+
 void Instrumental::printVec(const vec& a, const str& name) {
 	if (a.size() < 30) {
 		std::cout << name << ":\n";
@@ -32,22 +55,35 @@ void Instrumental::printMatr(const matr& a, const str& name) {
 	}
 }
 
-double Instrumental::getR(const vec& x, const vec& b) {
-	int n = x.size();
+double Instrumental::calcR(const vec& x, const vec& b) const {
 	double R = 0.;
 
-	for (int i = 0; i < n; i++) {
+	for (int i = 0; i < node; i++) {
 		R = fmax(R, fabs(b[i] - x[i]));
 	}
 
 	return R;
 }
 
-double Instrumental::getZ(const vec& u, const vec& v) {
-	int n = u.size();
+vec Instrumental::calcMatrVecMult(const matr& A, const vec& b) {
+	int n = A.size();
+	vec res(n);
+
+	#pragma omp parallel shared(res, n)
+	{
+		#pragma omp for
+		for (int i = 0; i < n; i++)
+			for (int j = 0; j < n; j++)
+				res[i] += A[i][j] * b[j];
+	}
+
+	return res;
+}
+
+double Instrumental::calcZ() const {
 	double Z = 0.;
 
-	for (int i = 0; i < n; i++) {
+	for (int i = 0; i < node; i++) {
 		Z = fmax(Z, fabs(u[i] - v[i]));
 	}
 

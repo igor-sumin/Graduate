@@ -12,21 +12,25 @@
 #include "ParallelInstrumental.h"
 #include "ParallelSweepMethod.h"
 
+
 class UnitTests {
 private:
-	size_t N; 
+	size_t N, node; 
+	vec u, v;
 
 	int threadNum, blockSize, classicSize;
 	matr A;
 	vec B;
 
-	size_t node;
 	double h;
 	double a, c, b;
-	vec x, u;
+	vec x;
+
+	Instrumental I;
+	ParallelInstrumental P;
+	SerialInstrumental S;
 
 	void prepareParallelDataForTest() {
-		ParallelInstrumental P;
 
 		A = P.createThirdDiagMatrI();
 		B = P.createVecN();
@@ -34,11 +38,9 @@ private:
 		tie(N, threadNum, blockSize, classicSize) = P.getAllFields();
 	}
 
-	void prepareSerialDataForTest(int n = 10) {
-		SerialInstrumental I(n);
-
-		tie(N, node, h, a, c, b, u) = I.getAllFields();
-		x = I.getGridNodes();
+	void prepareSerialDataForTest(size_t n) {
+		tie(N, node, u, v) = I.getAllFields();
+		tie(x, h, a, c, b) = S.getAllFields();
 	}
 
 public:
@@ -129,6 +131,7 @@ public:
 			this->prepareSerialDataForTest(5);
 			ASSERT(node > 2);
 
+			// Exact solution
 			for (size_t i = 0; i < node; i++) {
 				u[i] = 10 + 90 * x[i] * x[i];
 			}
@@ -152,50 +155,36 @@ public:
 				Phi[i] = 450 * x[i + 1] * x[i + 1] - 2110.;
 			}
 
-			Instrumental::printVec(Phi, "phi");
+			Instrumental::printVec(Phi, "Phi 1");
 
-			// 
-			/*
 			size_t n = N - 2;
 			vec A(n, a);
 			vec B(n, b);
 			vec C(n, c);
 			pairs mu = std::make_pair(10., 100.);
 			pairs kappa = std::make_pair(0., 0.);
-			pairs gamma = std::make_pair(1, 1);
+			pairs gamma = std::make_pair(1., 1.);
 
 			// Private solution
-			SerialSweepMethod ssm(A, C, B, Phi, kappa, mu, gamma);
-			vec v = ssm.run();
+			SerialSweepMethod sweepMethod(A, C, B, Phi, kappa, mu, gamma);
+			v = sweepMethod.run();
 
-			// Exact solution
-			vec u(N);
-			for (int i = 0; i < N; i++) {
-				u[i] = 10 + 90 * pow(x[i], 2);
-			}
-
-			Instrumental::printVec(v, "v");
-			Instrumental::printVec(u, "u");
+			I.setUV(u, v);
 
 			ASSERT_EQUAL(v, u);
 
 			// Numeric methods
-			matr res = instrumentalTest.createMatr(a, a, c);
+			matr res = S.createMatr();
+
 			Instrumental::printMatr(res, "res");
 
-			vec::iterator it = F.begin();
-			F.insert(it, mu.first);
-			it = F.end();
-			F.insert(--it, mu.second);
+			Phi.insert(Phi.begin(), mu.first);
+			Phi.insert(--Phi.end(), mu.second);
 
-			Instrumental::printVec(F, "fFull");
+			Instrumental::printVec(Phi, "Phi 2");
 
-			std::cout << "The scheme (SLAU) is solved with a discrepancy ||R|| = "
-				<< instrumentalTest.getR(instrumentalTest.calcMatrVecMult(res, v), F) << std::endl;
-
-			std::cout << "Estimation of the scheme error Z = "
-				<< instrumentalTest.getZ(u, v) << std::endl;
-			*/
+			printf("The scheme (SLAU) is solved with a discrepancy ||R|| = %f\n", I.calcR(I.calcMatrVecMult(res, v), Phi));
+			printf("Estimation of the scheme error Z = %f\n", I.calcZ());
 		}
 	}
 

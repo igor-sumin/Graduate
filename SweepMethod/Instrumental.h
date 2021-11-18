@@ -20,18 +20,23 @@ using str = std::string;
 
 class Instrumental {
 protected:
-	size_t N;
+	size_t N, node;
+	vec u, v;
 
 public:
-	Instrumental() : N(5) {}
+	Instrumental() : Instrumental(5) {}
 
-	Instrumental(size_t n) : N(n) {}
+	Instrumental(size_t n) : N(n), node(n + 1), u(node), v(node) {}
+
+	void setN(size_t n);
+
+	void setUV(vec& u_, vec& v_);
 
 	// Preparing user data for parallel computing
-	virtual void prepareData() = 0;
+	virtual void prepareData();
 
 	// Checking for multiplicity of @N and @THREADNUM
-	virtual bool checkData() const = 0;
+	virtual bool checkData() const;
 
 	// Printing a vector @a with @name
 	static void printVec(const vec& a, const str& name);
@@ -40,8 +45,14 @@ public:
 	static void printMatr(const matr& a, const str& name);
 
 	// Calculating the discrepancy
-	static double getR(const vec& x, const vec& b);
+	double calcR(const vec& x, const vec& b) const;
 
 	// Calculating of the error estimate of the scheme
-	static double getZ(const vec& u, const vec& v);
+	double calcZ() const;
+
+	// Matrix-vector multiplication : @A x @b
+	vec calcMatrVecMult(const matr& A, const vec& b);
+
+	// Getting protected fields
+	std::tuple<size_t, size_t, vec, vec> getAllFields() const;
 };

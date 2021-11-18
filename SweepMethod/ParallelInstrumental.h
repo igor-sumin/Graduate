@@ -14,7 +14,8 @@ protected:
 	int THREAD_NUM, BLOCK_SIZE, CLASSIC_SIZE;
 
 public:
-	ParallelInstrumental();
+	// ParallelInstrumental();
+	ParallelInstrumental() : ParallelInstrumental(5, -1, -1, -1) {}
 
 	ParallelInstrumental(size_t n, int threadNum, int blockSize, int classicSize)
 		: Instrumental(n), 
@@ -32,15 +33,6 @@ public:
 	/*
 	 * Creating a tridiagonal matrix with dimension @N x @N
 	 *
-	 * side lower diagonal = @a
-	 * side upper diagonal = @b
-	 * main diagonal	   = @c
-	*/
-	matr createMatr(double a, double b, double c);
-
-	/*
-	 * Creating a tridiagonal matrix with dimension @N x @N
-	 *
 	 * side lower diagonal = 1
 	 * side upper diagonal = 2
 	 * main diagonal	   = 3
@@ -49,9 +41,6 @@ public:
 
 	// Creating a matrix with random values from 0 to 100 with dimension @N x @N
 	matr createThirdDiagMatrRand();
-
-	// Matrix-vector multiplication : @A x @b
-	vec calcMatrVecMult(const matr& A, const vec& b);
 
 	// Creating a vector from 0 to @N with dimension @N
 	vec createVecN();

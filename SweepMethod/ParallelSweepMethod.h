@@ -4,6 +4,7 @@
 #include "AbstractSweepMethod.h"
 #include "SerialSweepMethod.h"
 
+
 class ParallelSweepMethod : public ParallelInstrumental, public AbstractSweepMethod {
 private:
 	matr A;

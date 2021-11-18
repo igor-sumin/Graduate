@@ -1,9 +1,9 @@
 #include "ParallelInstrumental.h"
 
 
-ParallelInstrumental::ParallelInstrumental() {
-	this->prepareData();
-}
+// ParallelInstrumental::ParallelInstrumental() {
+// 	this->prepareData();
+// }
 
 bool ParallelInstrumental::isPrime(int num) const {
 	bool ok = true;
@@ -134,37 +134,4 @@ matr ParallelInstrumental::createThirdDiagMatrRand() {
 	}
 
 	return a;
-}
-
-matr ParallelInstrumental::createMatr(double a, double b, double c) {
-	matr res(N, vec(N));
-
-	#pragma omp parallel for if (N > 500)
-	for (int i = 1; i < N; i++) {
-		for (int j = 0; j < N; j++) {
-			res[i][i] = c;
-			res[i][i - 1] = b;
-			res[i - 1][i] = a;
-		}
-	}
-
-	res[0][0] = 1.; res[N - 1][N - 1] = 1.;
-	res[0][1] = 0.; res[N - 1][N - 2] = 0.;
-
-	return res;
-}
-
-vec ParallelInstrumental::calcMatrVecMult(const matr& A, const vec& b) {
-	int n = A.size();
-	vec res(n);
-
-	#pragma omp parallel shared(res, n)
-	{
-		#pragma omp for
-		for (int i = 0; i < n; i++)
-			for (int j = 0; j < n; j++)
-				res[i] += A[i][j] * b[j];
-	}
-
-	return res;
 }

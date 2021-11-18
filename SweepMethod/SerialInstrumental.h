@@ -5,27 +5,35 @@
 
 class SerialInstrumental : public Instrumental {
 protected:
-	size_t node;
+	vec x;
 	double h;
 	double A, C, B;
-	vec u;
 
 public:
 	SerialInstrumental() : SerialInstrumental(5) {}
 
 	SerialInstrumental(size_t n) :
 		Instrumental(n),
-		node(N + 1), h(1 / static_cast<double>(N)), A(-1), C(-1), B(-1), u(node) {}
+		x(node), h(1 / static_cast<double>(N)), A(-1), C(-1), B(-1) {}
 
-	// Preparing user data for parallel computing
+	// Preparing user data for serial computing
 	void prepareData() override;
 
-	// Checking for multiplicity of @N and @THREADNUM
+	// Checking for ...
 	bool checkData() const override;
 
 	// Getting a grid with nodes
 	vec getGridNodes();
 
 	// Getting protected fields
-	std::tuple<size_t, size_t, double, double, double, double, vec> getAllFields() const;
+	std::tuple<vec, double, double, double, double> getAllFields();
+
+	/*
+	 * Creating a tridiagonal matrix with dimension @N x @N
+	 *
+	 * side lower diagonal = @a
+	 * side upper diagonal = @b
+	 * main diagonal	   = @c
+	*/
+	matr createMatr();
 };
