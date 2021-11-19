@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Instrumental.h"
-#include "AbstractSweepMethod.h"
+#include "main/interfaces/tools/Instrumental.h"
+#include "main/interfaces/AbstractSweepMethod.h"
 
 
 class SerialSweepMethod : public AbstractSweepMethod {
@@ -20,5 +20,15 @@ public:
 						  a(a_), b(b_), f(f_), 
 						  kappa(kappa_), mu(mu_), gamma(gamma_) {}
 
+    /*
+     * Sequential implementation of sweep method
+     *
+     * b - the diagonal lying above the main
+     * c - the main diagonal of the matrix A
+     * a - is the diagonal lying under the main
+     * f - right side
+     * x - vector of solutions
+     * kappa, mu, gamma - coefficients
+    */
 	vec run() override;
 };

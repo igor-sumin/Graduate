@@ -5,9 +5,9 @@
 #include "TestRunner.h"
 #include "Profiler.h"
 
-#include "Instrumental.h"
-#include "SerialSweepMethod.h"
-#include "ParallelSweepMethod.h"
+#include "main/interfaces/tools/Instrumental.h"
+#include "main/interfaces/serial/SerialSweepMethod.h"
+#include "main/interfaces/parallel/ParallelSweepMethod.h"
 
 class UnitTests {
 private:
