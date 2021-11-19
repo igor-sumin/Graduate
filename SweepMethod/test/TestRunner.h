@@ -23,6 +23,7 @@
 
 #define RUN_TEST(tr, func) tr.RunTest(func, #func)
 
+
 template <class T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T>& s) {
     os << "{";
@@ -40,7 +41,7 @@ std::ostream& operator<<(std::ostream& os, const std::vector<T>& s) {
 
 template<class T, class U>
 void AssertEqual(const T& t, const U& u, const std::string& hint = {}) {
-    if (!(t == u)) {
+    if (t != u) {
         std::ostringstream os;
         os << "Assertion failed.";
         if (!hint.empty()) {
@@ -60,7 +61,7 @@ private:
     int fail_count = 0;
 
 public:
-    void RunTest(std::function<void()> func, const std::string& testName) {
+    void RunTest(const std::function<void()>& func, const std::string& testName) {
         try {
             func();
             std::cerr << testName << " OK" << std::endl;

@@ -4,18 +4,17 @@
 
 #include "TestRunner.h"
 #include "Profiler.h"
-#include "Instrumental.h"
 
-#include "SerialInstrumental.h"
-#include "SerialSweepMethod.h"
-
-#include "ParallelInstrumental.h"
-#include "ParallelSweepMethod.h"
+#include "main/interfaces/Instrumental.h"
+#include "main/interfaces/serial/SerialInstrumental.h"
+#include "main/interfaces/serial/SerialSweepMethod.h"
+#include "main/interfaces/parallel/ParallelInstrumental.h"
+#include "main/interfaces/parallel/ParallelSweepMethod.h"
 
 
 class UnitTests {
 private:
-	size_t N, node; 
+	size_t N, node;
 	vec u, v;
 
 	int threadNum, blockSize, classicSize;
@@ -61,7 +60,7 @@ public:
 		}
 	}
 
-	/* 
+	/*
 	void test1() {
 		this->prepareDataForTest();
 
@@ -118,6 +117,7 @@ public:
 				xi[i] = i * h;
 			}
 
+			/*
 			std::cout << "The scheme (SLAU) is solved with a discrepancy ||R|| = " << I.getR(calcMatrVecMult(A, x), B) << std::endl;
 			std::cout << "Estimation of the scheme error Z = " << I.getZ(u, x) << std::endl;
 		}
@@ -158,15 +158,15 @@ public:
 			Instrumental::printVec(Phi, "Phi 1");
 
 			size_t n = N - 2;
-			vec A(n, a);
-			vec B(n, b);
-			vec C(n, c);
+			vec vA(n, a);
+			vec vB(n, b);
+			vec vC(n, c);
 			pairs mu = std::make_pair(10., 100.);
 			pairs kappa = std::make_pair(0., 0.);
 			pairs gamma = std::make_pair(1., 1.);
 
 			// Private solution
-			SerialSweepMethod sweepMethod(A, C, B, Phi, kappa, mu, gamma);
+			SerialSweepMethod sweepMethod(vA, vC, vB, Phi, kappa, mu, gamma);
 			v = sweepMethod.run();
 
 			I.setUV(u, v);
@@ -193,13 +193,13 @@ public:
 		str line = "-------------------------------";
 
 		std::vector<std::function<void()>> tests = {
-			[this]() {this->testModelTask();  }
-			// [this]() { this->testEnteredData(); },
+            [this]() { this->testEnteredData(); },
+			[this]() { this->testModelTask();  }
 			// [this]() { this->test1(); },
 			// [this]() { this->test2(); },
 		};
 
-		for (auto test : tests) {
+		for (const auto& test : tests) {
 			std::cout << line << std::endl;
 
 			RUN_TEST(testRunner, test);
@@ -208,4 +208,3 @@ public:
 		}
 	}
 };
-
