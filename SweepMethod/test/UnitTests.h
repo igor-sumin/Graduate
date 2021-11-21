@@ -114,28 +114,28 @@ public:
 		{
             SerialSweepMethod ssm(5);
             std::tie(v, u, N, node, h, x, A, C, B, Phi, kappa, mu, gamma) = ssm.getAllFields();
-			ASSERT(N > 1);
+            ASSERT(N > 1);
 
-			for (size_t i = 0; i < node; i++) {
-				u[i] = 10 + 90 * x[i] * x[i];
-			}
+            for (size_t i = 0; i < node; i++) {
+                u[i] = 10 + 90 * x[i] * x[i];
+            }
 
-			double total = 12. / (h * h);
+            double total = 12. / (h * h);
             A.assign(N, total);
             C.assign(N, 2. * total + 5.);
             B.assign(N, total);
 
-			for (size_t i = 0; i < node - 2; i++) {
-				Phi[i] = 450. * x[i + 1] * x[i + 1] - 2110.;
-			}
+            for (size_t i = 0; i < node - 2; i++) {
+                Phi[i] = 450. * x[i + 1] * x[i + 1] - 2110.;
+            }
 
-			mu = std::make_pair(10., 100.);
-			kappa = std::make_pair(0., 0.);
-			gamma = std::make_pair(1., 1.);
+            mu = std::make_pair(10., 100.);
+            kappa = std::make_pair(0., 0.);
+            gamma = std::make_pair(1., 1.);
 
             ssm.setAllFields(v, u, N, node, h, x, A, C, B, Phi, kappa, mu, gamma);
 
-			v = ssm.run();
+            v = ssm.run();
             ASSERT_FOR_DOUBLES(u, v);
 
             Phi.assign(node, 1);
@@ -147,8 +147,8 @@ public:
             ssm.setAllFields(v, u, N, node, h, x, A, C, B, Phi, kappa, mu, gamma);
 
             vec res = Instrumental::calcMatrVecMult(ssm.createMatr(), v);
-			printf("The scheme (SLAU) is solved with a discrepancy ||R|| = %f\n", ssm.calcR(res, Phi));
-			printf("Estimation of the scheme error Z = %f\n", ssm.calcZ());
+            printf("The scheme (SLAU) is solved with a discrepancy ||R|| = %f\n", ssm.calcR(res, Phi));
+            printf("Estimation of the scheme error Z = %f\n", ssm.calcZ());
 		}
 	}
 
