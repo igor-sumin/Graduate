@@ -1,10 +1,13 @@
 #pragma once
 
-#include "main/interfaces/tools/Instrumental.h"
+#include <utility>
+
+#include "main/interfaces/parallel/ParallelInstrumental.h"
 #include "main/interfaces/AbstractSweepMethod.h"
 #include "main/interfaces/serial/SerialSweepMethod.h"
 
-class ParallelSweepMethod : public Instrumental, public AbstractSweepMethod {
+
+class ParallelSweepMethod final : public ParallelInstrumental, public AbstractSweepMethod {
 private:
 	matr A;
 	vec b;
@@ -24,7 +27,9 @@ private:
 
 public:
 	ParallelSweepMethod() : A(createThirdDiagMatrI()), b(createVecN()) {}
-	ParallelSweepMethod(matr A_, vec b_) : A(A_), b(b_) {}
+
+	ParallelSweepMethod(matr A_, vec b_)
+        : A(std::move(A_)), b(std::move(b_)) {}
 
 	vec run() override;
 };
