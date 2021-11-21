@@ -17,10 +17,10 @@
 }
 
 #define ASSERT_FOR_DOUBLES(x, y) { \
-    std::ostringstream __assert_equal_private_os;       \
-    __assert_equal_private_os                           \
-    << #x << " != " << #y << ", "                       \
-    << __FILE__ << ":" << __LINE__;                     \
+    std::ostringstream __assert_equal_private_os;            \
+    __assert_equal_private_os                                \
+    << #x << " != " << #y << ", "                            \
+    << __FILE__ << ":" << __LINE__;                          \
     AssertForDoubles(x, y, __assert_equal_private_os.str()); \
 }
 
