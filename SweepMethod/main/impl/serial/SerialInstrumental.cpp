@@ -9,35 +9,29 @@ bool SerialInstrumental::checkData() const {
     return true;
 }
 
-std::tuple<vec, double, double, double, double> SerialInstrumental::getAllFields() {
-    this->prepareData();
-    this->checkData();
-
-    return std::make_tuple(x, h, A, C, B);
+std::tuple<double, vec, vec, vec, vec> SerialInstrumental::getAllFields() {
+    return std::make_tuple(h, x, A, C, B);
 }
 
 
 vec SerialInstrumental::getGridNodes() {
+    vec res(node);
     for (int i = 0; i < node; i++) {
-        x[i] = (double)i * h;
+        res[i] = (double)i * h;
     }
 
-    return x;
+    return res;
 }
 
 matr SerialInstrumental::createMatr() {
     matr res(node, vec(node));
 
-    print(A);
-    print(B);
-    print(C);
-
-#pragma omp parallel for if (node > 500)
-    for (int i = 1; i < node - 1; i++) {
-        for (int j = 0; j < node; j++) {
-            res[i][i] = C;
-            res[i][i - 1] = A;
-            res[i - 1][i] = B;
+    #pragma omp parallel for if (node > 500) shared(res) default(none)
+    for (size_t i = 1; i < node; i++) {
+        for (size_t j = 0; j < node; j++) {
+            res[i][i]     = -C[0];
+            res[i][i - 1] = A[0];
+            res[i - 1][i] = B[0];
         }
     }
 

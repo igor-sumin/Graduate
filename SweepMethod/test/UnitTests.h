@@ -1,6 +1,8 @@
 #pragma once
 
 #include <functional>
+#include <iostream>
+#include <vector>
 
 #include "TestRunner.h"
 #include "Profiler.h"
@@ -14,36 +16,18 @@
 
 class UnitTests {
 private:
-	size_t N, node;
-	vec u, v;
+    size_t N, node;
+    vec v, u;
 
-	int threadNum, blockSize, classicSize;
-	matr A;
-	vec B;
+    double h;
+    vec x;
+    vec A, C, B;
 
-	double h;
-	double a, c, b;
-	vec x;
-
-	Instrumental I;
-	ParallelInstrumental P;
-	SerialInstrumental S;
-
-	void prepareParallelDataForTest() {
-
-		A = P.createThirdDiagMatrI();
-		B = P.createVecN();
-
-		tie(N, threadNum, blockSize, classicSize) = P.getAllFields();
-	}
-
-	void prepareSerialDataForTest(size_t n) {
-		tie(N, node, u, v) = I.getAllFields();
-		tie(x, h, a, c, b) = S.getAllFields();
-	}
+    vec Phi;
+    pairs kappa, mu, gamma;
 
 public:
-	void testEnteredData() {
+	static void testEnteredData() {
 		std::cout << "Checking the correctness of the entered data\n";
 
 		{
@@ -125,66 +109,46 @@ public:
 	*/
 
 	void testModelTask() {
-		std::cout << "Modul 7. Model task for estimating computational error\n";
+		std::cout << "Module 7. Model task for estimating computational error\n";
 
 		{
-			this->prepareSerialDataForTest(5);
-			ASSERT(node > 2);
+            SerialSweepMethod ssm(5);
+            std::tie(v, u, N, node, h, x, A, C, B, Phi, kappa, mu, gamma) = ssm.getAllFields();
+			ASSERT(N > 1);
 
-			// Exact solution
 			for (size_t i = 0; i < node; i++) {
 				u[i] = 10 + 90 * x[i] * x[i];
 			}
 
-			Instrumental::printVec(x, "x");
-			Instrumental::printVec(u, "u");
-			print(h);
-
 			double total = 12. / (h * h);
+            A.assign(N, total);
+            C.assign(N, 2. * total + 5.);
+            B.assign(N, total);
 
-			a = total;
-			c = 2 * total + 5.;
-			b = total;
-
-			print(a);
-			print(b);
-			print(c);
-
-			vec Phi(node - 2);
 			for (size_t i = 0; i < node - 2; i++) {
-				Phi[i] = 450 * x[i + 1] * x[i + 1] - 2110.;
+				Phi[i] = 450. * x[i + 1] * x[i + 1] - 2110.;
 			}
 
-			Instrumental::printVec(Phi, "Phi 1");
+			mu = std::make_pair(10., 100.);
+			kappa = std::make_pair(0., 0.);
+			gamma = std::make_pair(1., 1.);
 
-			size_t n = N - 2;
-			vec vA(n, a);
-			vec vB(n, b);
-			vec vC(n, c);
-			pairs mu = std::make_pair(10., 100.);
-			pairs kappa = std::make_pair(0., 0.);
-			pairs gamma = std::make_pair(1., 1.);
+            ssm.setAllFields(v, u, N, node, h, x, A, C, B, Phi, kappa, mu, gamma);
 
-			// Private solution
-			SerialSweepMethod sweepMethod(vA, vC, vB, Phi, kappa, mu, gamma);
-			v = sweepMethod.run();
+			v = ssm.run();
+            ASSERT_FOR_DOUBLES(u, v);
 
-			I.setUV(u, v);
+            Phi.assign(node, 1);
+            Phi[0] = mu.first; Phi[node - 1] = mu.second;
+            for (size_t i = 1; i < node - 1; i++) {
+                Phi[i] = 2110. - 450. * x[i] * x[i];
+            }
 
-			ASSERT_EQUAL(v, u);
+            ssm.setAllFields(v, u, N, node, h, x, A, C, B, Phi, kappa, mu, gamma);
 
-			// Numeric methods
-			matr res = S.createMatr();
-
-			Instrumental::printMatr(res, "res");
-
-			Phi.insert(Phi.begin(), mu.first);
-			Phi.insert(--Phi.end(), mu.second);
-
-			Instrumental::printVec(Phi, "Phi 2");
-
-			printf("The scheme (SLAU) is solved with a discrepancy ||R|| = %f\n", I.calcR(I.calcMatrVecMult(res, v), Phi));
-			printf("Estimation of the scheme error Z = %f\n", I.calcZ());
+            vec res = Instrumental::calcMatrVecMult(ssm.createMatr(), v);
+			printf("The scheme (SLAU) is solved with a discrepancy ||R|| = %f\n", ssm.calcR(res, Phi));
+			printf("Estimation of the scheme error Z = %f\n", ssm.calcZ());
 		}
 	}
 
@@ -193,7 +157,7 @@ public:
 		str line = "-------------------------------";
 
 		std::vector<std::function<void()>> tests = {
-            [this]() { this->testEnteredData(); },
+            // []() { UnitTests::testEnteredData(); },
 			[this]() { this->testModelTask();  }
 			// [this]() { this->test1(); },
 			// [this]() { this->test2(); },

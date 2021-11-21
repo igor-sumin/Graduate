@@ -7,7 +7,7 @@
 #include "main/interfaces/serial/SerialSweepMethod.h"
 
 
-class ParallelSweepMethod : public ParallelInstrumental, public AbstractSweepMethod {
+class ParallelSweepMethod final : public ParallelInstrumental, public AbstractSweepMethod {
 private:
 	matr A;
 	vec b;

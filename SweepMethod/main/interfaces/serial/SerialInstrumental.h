@@ -2,19 +2,32 @@
 
 #include "main/interfaces/Instrumental.h"
 
+#include <utility>
+
 
 class SerialInstrumental : public Instrumental {
 protected:
-    vec x;
     double h;
-    double A, C, B;
+    vec x;
+    vec A, C, B;
 
 public:
-    SerialInstrumental() : SerialInstrumental(5) {}
+    SerialInstrumental() :
+            Instrumental(),
+            h(1 / static_cast<double>(N)),
+            x(std::move(this->getGridNodes())) {}
 
     explicit SerialInstrumental(size_t n) :
+            SerialInstrumental(n, vec(n, 0), vec(n, 0), vec(n, 0)) {}
+
+    SerialInstrumental(vec a, vec c, vec b) :
+            SerialInstrumental(a.size(), a, std::move(c), std::move(b)) {}
+
+    SerialInstrumental(size_t n, vec a, vec c, vec b) :
             Instrumental(n),
-            x(node), h(1 / static_cast<double>(N)), A(-1), C(-1), B(-1) {}
+            h(1 / static_cast<double>(N)),
+            x(this->getGridNodes()),
+            A(std::move(a)), C(std::move(c)), B(std::move(b)) {}
 
     // Preparing user data for serial computing
     void prepareData() override;
@@ -26,7 +39,7 @@ public:
     vec getGridNodes();
 
     // Getting protected fields
-    std::tuple<vec, double, double, double, double> getAllFields();
+    std::tuple<double, vec, vec, vec, vec> getAllFields();
 
     /*
      * Creating a tridiagonal matrix with dimension @N x @N

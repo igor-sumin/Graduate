@@ -15,8 +15,8 @@ void Instrumental::setN(size_t n) {
 }
 
 void Instrumental::setUV(vec& u_, vec& v_) {
-	Instrumental::printVec(u_, "u_");
-	Instrumental::printVec(v_, "v_");
+	Instrumental::printVec(u_, "u");
+	Instrumental::printVec(v_, "v");
 
 	u = u_;
 	v = v_;
@@ -68,14 +68,14 @@ double Instrumental::calcR(const vec& x, const vec& b) const {
 }
 
 vec Instrumental::calcMatrVecMult(const matr& A, const vec& b) {
-	int n = A.size();
+	size_t n = A.size();
 	vec res(n);
 
 	#pragma omp parallel shared(res, n, A, b) default(none)
 	{
 		#pragma omp for
-		for (int i = 0; i < n; i++)
-			for (int j = 0; j < n; j++)
+		for (size_t i = 0; i < n; i++)
+			for (size_t j = 0; j < n; j++)
 				res[i] += A[i][j] * b[j];
 	}
 

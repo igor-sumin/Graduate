@@ -6,16 +6,26 @@
 #include <string>
 #include <vector>
 
+#include "main/interfaces/Instrumental.h"
+
 #define ASSERT_EQUAL(x, y) {                            \
-    std::ostringstream __assert_equal_private_os;            \
+    std::ostringstream __assert_equal_private_os;       \
     __assert_equal_private_os                           \
     << #x << " != " << #y << ", "                       \
     << __FILE__ << ":" << __LINE__;                     \
     AssertEqual(x, y, __assert_equal_private_os.str()); \
 }
 
+#define ASSERT_FOR_DOUBLES(x, y) { \
+    std::ostringstream __assert_equal_private_os;       \
+    __assert_equal_private_os                           \
+    << #x << " != " << #y << ", "                       \
+    << __FILE__ << ":" << __LINE__;                     \
+    AssertForDoubles(x, y, __assert_equal_private_os.str()); \
+}
+
 #define ASSERT(x) {                        \
-    std::ostringstream os;                      \
+    std::ostringstream os;                 \
     os << #x << " is false, "              \
        << __FILE__ << ":" << __LINE__;     \
     Assert(x, os.str());                   \
@@ -42,6 +52,20 @@ std::ostream& operator<<(std::ostream& os, const std::vector<T>& s) {
 template<class T, class U>
 void AssertEqual(const T& t, const U& u, const std::string& hint = {}) {
     if (t != u) {
+        std::ostringstream os;
+        os << "Assertion failed.";
+        if (!hint.empty()) {
+            os << " hint: " << hint;
+        }
+
+        throw std::runtime_error(os.str());
+    }
+}
+
+void AssertForDoubles(const std::vector<double>& l, const std::vector<double>& r, const std::string& hint = {}) {
+    if (!std::equal(l.begin(), l.end(), r.begin(),
+                    [](const double& x, const double& y) { return std::fabs(x - y) <= EPS; })
+    ) {
         std::ostringstream os;
         os << "Assertion failed.";
         if (!hint.empty()) {
