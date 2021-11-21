@@ -157,10 +157,7 @@ public:
 		str line = "-------------------------------";
 
 		std::vector<std::function<void()>> tests = {
-            // []() { UnitTests::testEnteredData(); },
-			[this]() { this->testModelTask();  }
-			// [this]() { this->test1(); },
-			// [this]() { this->test2(); },
+			[this]() { this->testModelTask(); }
 		};
 
 		for (const auto& test : tests) {

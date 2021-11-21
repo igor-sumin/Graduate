@@ -33,7 +33,6 @@
 
 #define RUN_TEST(tr, func) tr.RunTest(func, #func)
 
-
 template <class T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T>& s) {
     os << "{";
