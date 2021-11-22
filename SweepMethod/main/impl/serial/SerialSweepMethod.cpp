@@ -3,6 +3,29 @@
 #include <utility>
 
 
+std::tuple<vec, vec, size_t, size_t, double, vec, vec, vec, vec, vec, pairs, pairs, pairs> SerialSweepMethod::getFields() const {
+    return std::make_tuple(v, u,
+                           N, node, h, x,
+                           A, C, B,
+                           Phi, kappa, mu, gamma);
+}
+
+void SerialSweepMethod::setAllFields(vec v, vec u, size_t N, size_t node, double h, vec x, vec A, vec C, vec B, vec Phi, pairs kappa, pairs mu, pairs gamma) {
+    this->v = std::move(v);
+    this->u = std::move(u);
+    this->N = N;
+    this->node = node;
+    this->h = h;
+    this->x = std::move(x);
+    this->A = std::move(A);
+    this->C = std::move(C);
+    this->B = std::move(B);
+    this->Phi = std::move(Phi);
+    this->kappa = kappa;
+    this->mu = mu;
+    this->gamma = gamma;
+}
+
 vec SerialSweepMethod::run() {
     vec alpha(N), beta(N);
     vec y(node);
@@ -22,24 +45,4 @@ vec SerialSweepMethod::run() {
     }
 
     return y;
-}
-
-std::tuple<vec, vec, size_t, size_t, double, vec, vec, vec, vec, vec, pairs, pairs, pairs> SerialSweepMethod::getAllFields() {
-    return std::make_tuple(v, u, N, node, h, x, A, C, B, Phi, kappa, mu, gamma);
-}
-
-void SerialSweepMethod::setAllFields(vec v, vec u, size_t N, size_t node, double h, vec x, vec A, vec C, vec B, vec Phi, pairs kappa, pairs mu, pairs gamma) {
-    this->v = std::move(v);
-    this->u = std::move(u);
-    this->N = N;
-    this->node = node;
-    this->h = h;
-    this->x = std::move(x);
-    this->A = std::move(A);
-    this->C = std::move(C);
-    this->B = std::move(B);
-    this->Phi = std::move(Phi);
-    this->kappa = kappa;
-    this->mu = mu;
-    this->gamma = gamma;
 }
