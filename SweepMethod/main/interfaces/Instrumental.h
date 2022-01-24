@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <numeric>
 
-#define print(a) printf("%s = %f\n", #a, a)
+#define print(a) printf("%s = %d\n", #a, a)
 #define EPS 0.0001;
 
 using matr = std::vector<std::vector<double>>;

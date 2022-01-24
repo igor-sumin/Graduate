@@ -26,6 +26,10 @@ private:
     vec Phi;
     pairs kappa, mu, gamma;
 
+    size_t threadNum, blockSize, classicSize;
+    matr pA;
+    vec pB;
+
     void prepareSerialDataForTest(const SerialSweepMethod& sweepMethod) {
         std::tie(v, u,
                  N, node, h, x,
@@ -40,16 +44,71 @@ private:
                                  Phi, kappa, mu, gamma);
     }
 
+    void prepareParallelDataForTest(const ParallelSweepMethod& sweepMethod) {
+        std::tie(N,
+                 threadNum, blockSize, classicSize,
+                 pA, pB) = sweepMethod.getAllFields();
+    }
+
+    void setParallelFields(ParallelSweepMethod& sweepMethod) {
+        sweepMethod.setAllFields(N, threadNum, blockSize, classicSize,pA, pB);
+    }
 
 public:
-    static void testEnteredData() {
-        std::cout << "Checking the correctness of the entered data\n";
+    static void testExecutionTime() {
+        std::cout << "I) Execution time for parallel:\n";
+        {
+            LOG_DURATION("3000 N, 6 threadNum");
 
-        // ...
+            ParallelInstrumental pi(3000, 6);
+            matr a = pi.createThirdDiagMatrI();
+        }
+
+        {
+            LOG_DURATION("3000 N, 1 threadNum");
+
+            ParallelInstrumental pi(3000, 1);
+            matr a = pi.createThirdDiagMatrI();
+        }
+
+    }
+
+    static void testEnteredData() {
+        std::cout << "II) Checking the correctness of the entered data:\n";
+
+        {
+            ParallelInstrumental pi(16, 4);
+            ASSERT(pi.checkData());
+        }
+
+        {
+            ParallelInstrumental pi(1600, 10);
+            ASSERT(pi.checkData());
+        }
+
+        {
+            ParallelInstrumental pi(161, 4);
+            ASSERT(!pi.checkData());
+        }
+
+        {
+            ParallelInstrumental pi(4, 4);
+            ASSERT(!pi.checkData());
+        }
+
+        {
+            ParallelInstrumental pi(16, 3);
+            ASSERT(!pi.checkData());
+        }
+
+        {
+            ParallelInstrumental pi(10000, 10);
+            ASSERT(pi.checkData());
+        }
     }
 
     void testModelTask() {
-        std::cout << "Module 7. Model task for estimating computational error\n";
+        std::cout << "III) Module 7. Model task for estimating computational error:\n";
 
         {
             SerialSweepMethod ssm(5);
@@ -93,20 +152,33 @@ public:
         }
     }
 
+    void testParallelAlgorithm() {
+        std::cout << "IV) Checking the correctness of the parallel algorithm:\n";
+
+        {
+            ParallelSweepMethod psm(16, 4);
+            this->prepareParallelDataForTest(psm);
+
+            ASSERT(N > 1);
+        }
+    }
+
     void execute() {
         TestRunner testRunner;
         str line = "-------------------------------";
 
         std::vector<std::function<void()>> tests = {
-            [this]() { this->testModelTask(); }
+            []() { UnitTests::testExecutionTime(); },
+            []() { UnitTests::testEnteredData(); },
+            [this]() { this->testModelTask(); },
+            [this]() { this->testParallelAlgorithm(); }
         };
 
         for (const auto& test : tests) {
             std::cout << line << std::endl;
-
             RUN_TEST(testRunner, test);
-
-            std::cout << line << std::endl;
         }
+
+        std::cout << line << std::endl;
     }
 };

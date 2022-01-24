@@ -20,7 +20,7 @@ public:
     explicit SerialInstrumental(size_t n) :
             SerialInstrumental(n, vec(n, 0), vec(n, 0), vec(n, 0)) {}
 
-    SerialInstrumental(vec a, vec c, vec b) :
+    SerialInstrumental(const vec& a, vec c, vec b) :
             SerialInstrumental(a.size(), a, std::move(c), std::move(b)) {}
 
     SerialInstrumental(size_t n, vec a, vec c, vec b) :

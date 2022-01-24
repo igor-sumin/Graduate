@@ -26,8 +26,8 @@ public:
 
 	~LogDuration() {
 		auto finish = steady_clock::now();
-		cerr << message << duration_cast<milliseconds>(finish - start).count() << " ms ("
-			<< duration_cast<seconds>(finish - start).count() << " s)" << endl;
+		std::cout << message << duration_cast<milliseconds>(finish - start).count() << " ms ("
+			      << duration_cast<seconds>(finish - start).count() << " s)" << endl;
 	}
 
 };
