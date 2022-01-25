@@ -12,24 +12,29 @@ private:
     static vec findDivisors(int num);
 
 protected:
-    int THREAD_NUM, BLOCK_SIZE, CLASSIC_SIZE;
+    size_t threadNum, blockSize, classicSize;
 
 public:
-    // ParallelInstrumental();
-    ParallelInstrumental() : ParallelInstrumental(5, -1, -1, -1) {}
+    ParallelInstrumental() : ParallelInstrumental(5, 0, -1, -1) {}
 
-    ParallelInstrumental(size_t n, int threadNum, int blockSize, int classicSize)
-            : Instrumental(n),
-              THREAD_NUM(threadNum), BLOCK_SIZE(blockSize), CLASSIC_SIZE(classicSize) {}
+    ParallelInstrumental(size_t n, size_t tN) : Instrumental(n) {
+        this->prepareData(n, tN);
+    }
+
+    ParallelInstrumental(size_t n, size_t threadNum, size_t blockSize, size_t classicSize) : Instrumental(n),
+              threadNum(threadNum), blockSize(blockSize), classicSize(classicSize) {
+        this->setParallelOptions();
+    }
+
+    void setParallelOptions() const;
 
     // Preparing user data for parallel computing
+    void prepareData(size_t n, size_t threadNum);
+
     void prepareData() override;
 
     // Checking for multiplicity of @N and @THREAD_NUM
     bool checkData() const override;
-
-    // Getting protected fields
-    std::tuple<size_t, int, int, int> getAllFields() const;
 
     /*
      * Creating a tridiagonal matrix with dimension @N x @N

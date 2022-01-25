@@ -87,7 +87,7 @@ public:
     void RunTest(const std::function<void()>& func, const std::string& testName) {
         try {
             func();
-            std::cerr << testName << " OK" << std::endl;
+            std::cout << testName << " OK" << std::endl;
         }
         catch (std::exception& e) {
             ++fail_count;
