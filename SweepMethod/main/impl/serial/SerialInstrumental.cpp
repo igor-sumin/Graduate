@@ -26,7 +26,7 @@ vec SerialInstrumental::getGridNodes() {
 matr SerialInstrumental::createMatr() {
     matr res(node, vec(node));
 
-    #pragma omp parallel shared(res) default(none) if (node > 500)
+    #pragma omp parallel shared(res, node, C, A, B) default(none) if (node > 500)
     for (size_t i = 1; i < node; i++) {
         for (size_t j = 0; j < node; j++) {
             res[i][i]     = -C[0];

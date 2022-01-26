@@ -64,7 +64,7 @@ void AssertEqual(const T& t, const U& u, const std::string& hint = {}) {
 void AssertForDoubles(const std::vector<double>& l, const std::vector<double>& r, const std::string& hint = {}) {
     if (!std::equal(l.begin(), l.end(), r.begin(),
                     [](const double& x, const double& y) { return std::fabs(x - y) <= EPS; })
-    ) {
+            ) {
         std::ostringstream os;
         os << "Assertion failed.";
         if (!hint.empty()) {

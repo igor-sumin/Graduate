@@ -14,22 +14,25 @@ void ParallelSweepMethod::setAllFields(size_t N, size_t threadNum, size_t blockS
     this->b = std::move(b);
 }
 
-void ParallelSweepMethod::transformMatrA() {
-	for (int iter = 0; iter < threadNum; iter++) {
-		// top-down
-		for (int i = iter * blockSize; i < (iter + 1) * blockSize - 1; i++) {
-			double k = A[i + 1][i] / A[i][i];
-			for (int j = 0; j < i + 1; j++) {
-				A[i + 1][j] -= k * A[i][j];
+void ParallelSweepMethod::transformation() {
+	for (size_t iter = 0; iter < threadNum; iter++) {
+		// top-down (slide 3)
+		for (size_t i = iter * blockSize + 1; i < (iter + 1) * blockSize; i++) {
+			double k = A[i][i - 1] / A[i - 1][i - 1];
+            for (size_t j = 0; j < i + 1; j++) {
+				A[i][j] -= k * A[i - 1][j];
 			}
+            b[i] -= k * b[i - 1];
 		}
 
 		// bottom-up
-		for (int i = (iter + 1) * blockSize - 2; i >= iter * blockSize; i--) {
+		for (size_t l = (iter + 1) * blockSize - 1; l > iter * blockSize; l--) {
+            size_t i = l - 1;
 			double k = A[i][i + 1] / A[i + 1][i + 1];
-			for (int j = i; j < N - 1; j++) {
+			for (size_t j = i; j < N - 1; j++) {
 				A[i][j + 1] -= k * A[i + 1][j + 1];
 			}
+            b[i] -= k * b[i + 1];
 		}
 	}
 }
@@ -214,7 +217,7 @@ vec ParallelSweepMethod::run() {
 	printVec(b, "b");
 
     // 1. Reduction of the matrix to columnar views
-	transformMatrA();
+    transformation();
 
 	printMatr(A, "A2");
 
