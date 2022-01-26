@@ -23,8 +23,6 @@ private:
 
 	vec result(const vec& X1, const vec& X2);
 
-	void transformMatrA();
-
 public:
     ParallelSweepMethod(size_t n, size_t threadNum) : ParallelInstrumental(n, threadNum) {
         this->A = createThirdDiagMatrI();
@@ -41,5 +39,7 @@ public:
     // Setting protected fields
     void setAllFields(size_t N, size_t threadNum, size_t blockSize, size_t classicSize, matr A, vec b);
 
-	vec run() override;
+    void transformation();
+
+    vec run() override;
 };

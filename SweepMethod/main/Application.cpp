@@ -1,9 +1,13 @@
-#include "test/UnitTests.h"
 
+#include <test/ParallelAlgorithmComponentTest.h>
+#include <test/SerialAlgorithmComponentTest.h>
 
 int main(int argc, char** argv) {
-	UnitTests tests;
-	tests.execute();
-	
+	ParallelAlgorithmComponentTest p;
+    p.execute();
+
+    SerialAlgorithmComponentTest s;
+    s.execute();
+
 	return 0;
 }

@@ -12,12 +12,14 @@ add_executable(GraduateWork-2022
         SweepMethod/main/Application.cpp
         SweepMethod/main/impl/parallel/ParallelSweepMethod.cpp
         SweepMethod/main/interfaces/parallel/ParallelSweepMethod.h
-        SweepMethod/test/Profiler.h
         SweepMethod/main/impl/serial/SerialSweepMethod.cpp
         SweepMethod/main/interfaces/serial/SerialSweepMethod.h
-        SweepMethod/test/TestRunner.h
-        SweepMethod/test/UnitTests.h
         SweepMethod/main/impl/parallel/ParallelInstrumental.cpp
         SweepMethod/main/interfaces/parallel/ParallelInstrumental.h
         SweepMethod/main/impl/serial/SerialInstrumental.cpp
-        SweepMethod/main/interfaces/serial/SerialInstrumental.h)
+        SweepMethod/main/interfaces/serial/SerialInstrumental.h
+        SweepMethod/test/ParallelAlgorithmComponentTest.h
+        SweepMethod/test/SerialAlgorithmComponentTest.h
+        SweepMethod/test/common/Profiler.h
+        SweepMethod/test/common/TestRunner.h
+        SweepMethod/test/common/BaseComponentTest.h)
