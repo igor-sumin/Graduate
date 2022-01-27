@@ -101,7 +101,7 @@ vec ParallelInstrumental::createVecRand() {
     std::mt19937 gen(dev());
     vec a(N);
 
-    #pragma omp parallel shared(a, N, gen) default(none) if (N > 500)
+    #pragma omp parallel for shared(a, N, gen) default(none) if (N > 500)
     for (int i = 0; i < N; i++)
         a[i] = gen() % 100;
 
@@ -111,7 +111,7 @@ vec ParallelInstrumental::createVecRand() {
 matr ParallelInstrumental::createThirdDiagMatrI() {
     matr a(N, vec(N));
 
-    #pragma omp parallel default(none) shared(a, N) if (N > 500)
+    #pragma omp parallel for shared(a, N) default(none) if (N > 500)
     for (int i = 1; i < N; i++) {
         for (int j = 0; j < N; j++) {
             a[i][i] = 3.;
@@ -132,7 +132,7 @@ matr ParallelInstrumental::createThirdDiagMatrRand() {
     matr a(N, vec(N));
 
     a[0][0] = gen() % 100;
-    #pragma omp parallel default(none) shared(a, N, gen) if (N > 500)
+    #pragma omp parallel for shared(a, N, gen) default(none) if (N > 500)
     for (int i = 1; i < N; i++) {
         for (int j = 0; j < N; j++) {
             a[i][i] = gen() % 100;

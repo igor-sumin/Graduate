@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <numeric>
 
+#define print() printf("---\n");
 #define printd(a) printf("%s = %f\n", #a, a);
 #define printi(a) printf("%s = %d\n", #a, a);
 
