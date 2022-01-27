@@ -15,26 +15,33 @@ void ParallelSweepMethod::setAllFields(size_t N, size_t threadNum, size_t blockS
 }
 
 void ParallelSweepMethod::transformation() {
-	for (size_t iter = 0; iter < threadNum; iter++) {
-		// top-down (slide 3)
-		for (size_t i = iter * blockSize + 1; i < (iter + 1) * blockSize; i++) {
-			double k = A[i][i - 1] / A[i - 1][i - 1];
-            for (size_t j = 0; j < i + 1; j++) {
-				A[i][j] -= k * A[i - 1][j];
-			}
-            b[i] -= k * b[i - 1];
-		}
+    size_t i, j, k;
+    double coef;
+    int iter;
 
-		// bottom-up
-		for (size_t l = (iter + 1) * blockSize - 1; l > iter * blockSize; l--) {
-            size_t i = l - 1;
-			double k = A[i][i + 1] / A[i + 1][i + 1];
-			for (size_t j = i; j < N - 1; j++) {
-				A[i][j + 1] -= k * A[i + 1][j + 1];
-			}
-            b[i] -= k * b[i + 1];
-		}
-	}
+    #pragma omp parallel private(i, j, k, coef, iter) shared(A, b, blockSize) default(none)
+    {
+        iter = omp_get_thread_num();
+
+        // top-down
+        for (i = iter * blockSize + 1; i < (iter + 1) * blockSize; i++) {
+            coef = A[i][i - 1] / A[i - 1][i - 1];
+            for (j = 0; j < i + 1; j++) {
+                A[i][j] -= coef * A[i - 1][j];
+            }
+            b[i] -= coef * b[i - 1];
+        }
+
+        // bottom-up
+        for (k = (iter + 1) * blockSize - 1; k > iter * blockSize; k--) {
+            i = k - 1;
+            coef = A[i][i + 1] / A[i + 1][i + 1];
+            for (j = i; j < N - 1; j++) {
+                A[i][j + 1] -= coef * A[i + 1][j + 1];
+            }
+            b[i] -= coef * b[i + 1];
+        }
+    }
 }
 
 std::pair<matr, vec> ParallelSweepMethod::collectInterferElem() {

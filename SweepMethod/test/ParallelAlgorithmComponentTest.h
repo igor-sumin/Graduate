@@ -1,8 +1,5 @@
 #pragma once
 
-#include <functional>
-#include <iostream>
-#include <vector>
 #include <main/interfaces/parallel/ParallelSweepMethod.h>
 #include <test/common/Profiler.h>
 #include <test/common/TestRunner.h>
@@ -106,12 +103,15 @@ public:
             printf("The scheme (SLAU) is solved with a discrepancy ||R|| = %f\n", si.calcR(x, u));
         }
 
+        print();
+
         {
+            LOG_DURATION("time (8, 2)");
             ParallelSweepMethod psm(8, 2);
             this->prepareParallelDataForTest(psm);
 
-            A = psm.createThirdDiagMatrRand();
-            b = psm.createVecRand();
+            A = psm.createThirdDiagMatrI();
+            b = psm.createVecN();
 
             this->setParallelFields(psm);
 
@@ -122,12 +122,15 @@ public:
             Instrumental::printVec(b, "b (8, 2)");
         }
 
+        print();
+
         {
+            LOG_DURATION("time (12, 3)");
             ParallelSweepMethod psm(12, 3);
             this->prepareParallelDataForTest(psm);
 
-            A = psm.createThirdDiagMatrRand();
-            b = psm.createVecRand();
+            A = psm.createThirdDiagMatrI();
+            b = psm.createVecN();
             this->setParallelFields(psm);
 
             psm.transformation();
@@ -135,6 +138,15 @@ public:
 
             Instrumental::printMatr(A, "A (12, 3)");
             Instrumental::printVec(b, "b (12, 3)");
+        }
+
+        print();
+
+        {
+            // parallel work faster in this case
+            //
+            // (15000, 3): 9260 ms (9 s)
+            // (15000, 1): 14317 ms (14 s)
         }
     }
 
