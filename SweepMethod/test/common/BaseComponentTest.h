@@ -11,10 +11,6 @@
 #include "main/interfaces/Instrumental.h"
 
 class BaseComponentTest {
-protected:
-    size_t N, node;
-    vec v, u;
-
 public:
     static void execute(const std::vector<std::function<void()>>& tests) {
         TestRunner testRunner;

@@ -7,7 +7,7 @@ int main(int argc, char** argv) {
     p.execute();
 
     SerialAlgorithmComponentTest s;
-    s.execute();
+    // s.execute();
 
 	return 0;
 }

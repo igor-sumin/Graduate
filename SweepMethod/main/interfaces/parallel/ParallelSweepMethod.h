@@ -7,8 +7,8 @@
 #include "main/interfaces/serial/SerialSweepMethod.h"
 
 
-class ParallelSweepMethod final : public ParallelInstrumental, public AbstractSweepMethod {
-private:
+class ParallelSweepMethod : public ParallelInstrumental, public AbstractSweepMethod {
+protected:
 	matr A;
 	vec b, y;
 
@@ -28,6 +28,8 @@ private:
     void preLRR(matr& R);
 
 public:
+    ParallelSweepMethod() = default;
+
     ParallelSweepMethod(size_t n, size_t threadNum) : ParallelInstrumental(n, threadNum) {
         this->A = createThirdDiagMatrI();
         this->b = createVecN();
