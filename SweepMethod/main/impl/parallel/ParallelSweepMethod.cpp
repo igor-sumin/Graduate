@@ -62,45 +62,16 @@ void ParallelSweepMethod::preLRR(matr& R) {
     R[interSize - 3][interSize - 2] = A[N - blockSize * 2][bSN];
 }
 
-void ParallelSweepMethod::testing() {
-    matr R(interSize, vec(interSize, 0.));
-    vec partB(interSize);
-
-    // 2. post-processing (internal part)
-    for (size_t i = blockSize, k = 1; i < N - blockSize; i += blockSize, k += 2) {
-        for (size_t j = blockSize, l = 1; j < N - blockSize; j += blockSize, l += 2) {
-            // a1 ----- a2
-            // |         |
-            // |         |
-            // a3 ----- a4
-            double a1 = A[i][j];
-            double a2 = A[i][j + blockSize - 1];
-            double a3 = A[i + blockSize - 1][j];
-            double a4 = A[i + blockSize - 1][j + blockSize - 1];
-
-            if (a1 != 0 && a4 != 0) {
-                R[k][l] = a1;
-                R[k + 1][l + 1] = a4;
-            }
-            else if (a1 != 0) {
-                R[k][l - 1] = a1;
-                R[k + 1][l] = a3;
-            }
-            else if (a4 != 0) {
-                R[k][l + 1] = a2;
-                R[k + 1][l + 2] = a4;
-            }
-        }
-    }
-}
-
 std::pair<matr, vec> ParallelSweepMethod::collectInterferElem() {
     matr R(interSize, vec(interSize, 0.));
     vec partB(interSize);
 
-    int iter;
-    size_t s;
+    size_t k = 1, l = 1;
+    size_t iter, jter;
+    size_t i, j, s;
+    double a1, a2, a3, a4;
 
+    // 1. pre-processing (extreme part)
     #pragma omp parallel private(s, iter) shared(R, partB) num_threads(threadNum - 1) default(none)
     {
         iter = omp_get_thread_num();
@@ -124,42 +95,48 @@ std::pair<matr, vec> ParallelSweepMethod::collectInterferElem() {
         }
     }
 
-	// 2. post-processing (internal part)
-	for (size_t i = blockSize, k = 1; i < N - blockSize; i += blockSize, k += 2) {
-		for (size_t j = blockSize, l = 1; j < N - blockSize; j += blockSize, l += 2) {
-            // a1 ----- a2
-            // |         |
-            // |         |
-            // a3 ----- a4
-			double a1 = A[i][j];
-            double a2 = A[i][j + blockSize - 1];
-			double a3 = A[i + blockSize - 1][j];
-			double a4 = A[i + blockSize - 1][j + blockSize - 1];
+    // 2. post-processing (internal part)
+    #pragma omp parallel private(iter, jter, i, j, a1, a2, a3, a4) firstprivate(k, l) shared(A, R, blockSize) default(none)
+    {
+        iter = (omp_get_thread_num() + 1) * blockSize;
 
-			if (a1 != 0 && a4 != 0) {
-				R[k][l] = a1;
-				R[k + 1][l + 1] = a4;
-			}
-			else if (a1 != 0) {
-				R[k][l - 1] = a1;
-				R[k + 1][l] = a3;
-			}
-			else if (a4 != 0) {
-				R[k][l + 1] = a2;
-				R[k + 1][l + 2] = a4;
-			}
-		}
-	}
+        for (i = iter; i < N - iter; i += iter) {
+            for (j = iter; j < N - iter; j += iter) {
+                // a1 ----- a2
+                // |         |
+                // |         |
+                // a3 ----- a4
+                a1 = A[i][j];
+                a2 = A[i][j + blockSize - 1];
+                a3 = A[i + blockSize - 1][j];
+                a4 = A[i + blockSize - 1][j + blockSize - 1];
 
-	printMatr(R, "R1");
-	printVec(partB, "partB");
+                if (a1 != 0 && a4 != 0) {
+                    R[k][l] = a1;
+                    R[k + 1][l + 1] = a4;
+                } else if (a1 != 0) {
+                    R[k][l - 1] = a1;
+                    R[k + 1][l] = a3;
+                } else if (a4 != 0) {
+                    R[k][l + 1] = a2;
+                    R[k + 1][l + 2] = a4;
+                }
+
+                l += 2;
+            }
+
+            l = 1;
+            k += 2;
+        }
+    }
 
 	// ordering the coefficient
-	for (int i = 0; i < interSize; i += 2) {
-		std::swap(R[i][i], R[i][i + 1]);
-		std::swap(R[i + 1][i], R[i + 1][i + 1]);
-		std::swap(partB[i], partB[i + 1]);
-	}
+    #pragma omp parallel for shared(R, partB) default(none)
+    for (int i = 0; i < interSize; i += 2) {
+        std::swap(R[i][i], R[i][i + 1]);
+        std::swap(R[i + 1][i], R[i + 1][i + 1]);
+        std::swap(partB[i], partB[i + 1]);
+    }
 
 	return std::make_pair(R, partB);
 }
