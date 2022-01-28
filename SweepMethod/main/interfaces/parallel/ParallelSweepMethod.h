@@ -10,9 +10,7 @@
 class ParallelSweepMethod final : public ParallelInstrumental, public AbstractSweepMethod {
 private:
 	matr A;
-	vec b;
-
-	std::pair<matr, vec> collectInterferElem();
+	vec b, y;
 
 	vec ClassicSweepMethod(const matr& R, const vec& Y1);
 
@@ -23,10 +21,17 @@ private:
 
 	vec result(const vec& X1, const vec& X2);
 
+    // preprocessing Upper Left Corner of the matrix R
+    void preULR(matr& R);
+
+    // preprocessing Lower Right Corner of the matrix R
+    void preLRR(matr& R);
+
 public:
     ParallelSweepMethod(size_t n, size_t threadNum) : ParallelInstrumental(n, threadNum) {
         this->A = createThirdDiagMatrI();
         this->b = createVecN();
+        this->y.assign(N, 0.);
     }
 
 	ParallelSweepMethod(matr A_, vec b_) : A(std::move(A_)), b(std::move(b_)) {
@@ -34,12 +39,16 @@ public:
     }
 
     // Getting protected fields
-    std::tuple<size_t, size_t, size_t, size_t, matr, vec> getAllFields() const;
+    std::tuple<size_t, size_t, size_t, size_t, matr, vec, vec> getAllFields() const;
 
     // Setting protected fields
-    void setAllFields(size_t N, size_t threadNum, size_t blockSize, size_t classicSize, matr A, vec b);
+    void setAllFields(size_t N, size_t threadNum, size_t blockSize, size_t classicSize, matr A, vec b, vec y);
 
     void transformation();
+
+    std::pair<matr, vec> collectInterferElem();
+
+    void testing();
 
     vec run() override;
 };

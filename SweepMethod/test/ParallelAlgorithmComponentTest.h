@@ -7,18 +7,19 @@
 
 class ParallelAlgorithmComponentTest final : public BaseComponentTest {
 private:
-    size_t threadNum, blockSize, classicSize;
+    size_t threadNum, blockSize, interSize;
     matr A;
     vec b, x, u;
+    vec y;
 
     void prepareParallelDataForTest(const ParallelSweepMethod& sweepMethod) {
         std::tie(N,
-                 threadNum, blockSize, classicSize,
-                 A, b) = sweepMethod.getAllFields();
+                 threadNum, blockSize, interSize,
+                 A, b, y) = sweepMethod.getAllFields();
     }
 
     void setParallelFields(ParallelSweepMethod& sweepMethod) {
-        sweepMethod.setAllFields(N, threadNum, blockSize, classicSize, A, b);
+        sweepMethod.setAllFields(N, threadNum, blockSize, interSize, A, b, y);
     }
 
 public:
@@ -79,12 +80,12 @@ public:
             this->prepareParallelDataForTest(psm);
 
             A = {
-                    {1.000,   0.000,    0.000,    0.000,    0.000,    0.000},
-                    {300.000, -605.000, 300.000,  0.000,    0.000,    0.000},
-                    {0.000,   300.000,  -605.000, 300.000,  0.000,    0.000},
-                    {0.000,   0.000,    300.000,  -605.000, 300.000,  0.000},
-                    {0.000,   0.000,    0.000,    300.000,  -605.000, 300.000},
-                    {0.000,   0.000,    0.000,    0.000,    0.000,    1.000}
+                {1.000,    0.000,    0.000,    0.000,    0.000,    0.000},
+                {300.000, -605.000,  300.000,  0.000,    0.000,    0.000},
+                {0.000,    300.000, -605.000,  300.000,  0.000,    0.000},
+                {0.000,    0.000,    300.000, -605.000,  300.000,  0.000},
+                {0.000,    0.000,    0.000,    300.000, -605.000,  300.000},
+                {0.000,    0.000,    0.000,    0.000,    0.000,    1.000}
             };
             b = {10.0, 2092.0, 2038.0, 1948.0, 1822.0, 100.0};
             u = {10, 13.6, 24.4, 42.4, 67.6, 100};
@@ -108,12 +109,6 @@ public:
         {
             LOG_DURATION("time (8, 2)");
             ParallelSweepMethod psm(8, 2);
-            this->prepareParallelDataForTest(psm);
-
-            A = psm.createThirdDiagMatrI();
-            b = psm.createVecN();
-
-            this->setParallelFields(psm);
 
             psm.transformation();
             this->prepareParallelDataForTest(psm);
@@ -127,11 +122,6 @@ public:
         {
             LOG_DURATION("time (12, 3)");
             ParallelSweepMethod psm(12, 3);
-            this->prepareParallelDataForTest(psm);
-
-            A = psm.createThirdDiagMatrI();
-            b = psm.createVecN();
-            this->setParallelFields(psm);
 
             psm.transformation();
             this->prepareParallelDataForTest(psm);
@@ -150,11 +140,26 @@ public:
         }
     }
 
+    void testSlide11() {
+        ParallelSweepMethod psm(16, 4);
+
+        // psm.transformation();
+        psm.testing();
+
+        // std::tie(R, y1) = psm.collectInterferElem();
+
+        this->prepareParallelDataForTest(psm);
+
+//        Instrumental::printMatr(A, "A (12, 3)");
+        Instrumental::printVec(b, "b (12, 3)");
+    }
+
     void execute() {
         std::vector<std::function<void()>> tests = {
-            []() { ParallelAlgorithmComponentTest::testExecutionTime(); },
-            []() { ParallelAlgorithmComponentTest::testEnteredData(); },
-            [this]() { this->testSlide3(); }
+//            []() { ParallelAlgorithmComponentTest::testExecutionTime(); },
+//            []() { ParallelAlgorithmComponentTest::testEnteredData(); },
+//            [this]() { this->testSlide3(); }
+            [this]() { this->testSlide11(); }
         };
 
         BaseComponentTest::execute(tests);

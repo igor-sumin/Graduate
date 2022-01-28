@@ -12,7 +12,7 @@ private:
     static vec findDivisors(int num);
 
 protected:
-    size_t threadNum, blockSize, classicSize;
+    size_t threadNum, blockSize, interSize;
 
 public:
     ParallelInstrumental() : ParallelInstrumental(5, 0, -1, -1) {}
@@ -21,8 +21,8 @@ public:
         this->prepareData(n, tN);
     }
 
-    ParallelInstrumental(size_t n, size_t threadNum, size_t blockSize, size_t classicSize) : Instrumental(n),
-              threadNum(threadNum), blockSize(blockSize), classicSize(classicSize) {
+    ParallelInstrumental(size_t n, size_t threadNum, size_t blockSize, size_t interSize) : Instrumental(n),
+              threadNum(threadNum), blockSize(blockSize), interSize(interSize) {
         this->setParallelOptions();
     }
 
