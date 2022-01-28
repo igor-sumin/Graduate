@@ -46,10 +46,14 @@ void ParallelInstrumental::prepareData() {
 }
 
 void ParallelInstrumental::prepareData(size_t n, size_t tN) {
+    // dimension
     N = n;
+    // number of compute nodes
     threadNum = tN;
+    // dimension for one computing node
     blockSize = (int)N / threadNum;
-    classicSize = (threadNum - 1) * 2;
+    // dimension of interfering elements
+    interSize = (threadNum - 1) * 2;
 
     this->setParallelOptions();
 }
