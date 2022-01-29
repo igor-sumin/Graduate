@@ -23,14 +23,14 @@ public:
     static void testExecutionTime() {
         std::cout << "I) Execution time for parallel:\n";
         {
-            LOG_DURATION("1000 N, 4 threadNum");
+            LOG_DURATION("1000 N, 4 threadNum")
 
             ParallelInstrumental pi(1000, 4);
             matr a = pi.createThirdDiagMatrI();
         }
 
         {
-            LOG_DURATION("10000 N, 1 threadNum");
+            LOG_DURATION("10000 N, 1 threadNum")
 
             ParallelInstrumental pi(1000, 1);
             matr a = pi.createThirdDiagMatrI();
@@ -43,27 +43,27 @@ public:
 
         {
             ParallelInstrumental pi(16, 4);
-            ASSERT(pi.checkData());
+            ASSERT(pi.checkData())
         }
 
         {
             ParallelInstrumental pi(1600, 10);
-            ASSERT(pi.checkData());
+            ASSERT(pi.checkData())
         }
 
         {
             ParallelInstrumental pi(161, 4);
-            ASSERT(!pi.checkData());
+            ASSERT(!pi.checkData())
         }
 
         {
             ParallelInstrumental pi(4, 4);
-            ASSERT(!pi.checkData());
+            ASSERT(!pi.checkData())
         }
 
         {
             ParallelInstrumental pi(16, 3);
-            ASSERT(!pi.checkData());
+            ASSERT(!pi.checkData())
         }
     }
 
@@ -101,10 +101,10 @@ public:
             printf("The scheme (SLAU) is solved with a discrepancy ||R|| = %f\n", si.calcR(y, u));
         }
 
-        print();
+        print()
 
         {
-            LOG_DURATION("time (8, 2)");
+            LOG_DURATION("time (8, 2)")
             ParallelSweepMethod psm(8, 2);
 
             psm.transformation();
@@ -114,10 +114,10 @@ public:
             Instrumental::printVec(b, "b (8, 2)");
         }
 
-        print();
+        print()
 
         {
-            LOG_DURATION("time (12, 3)");
+            LOG_DURATION("time (12, 3)")
             ParallelSweepMethod psm(12, 3);
 
             psm.transformation();
@@ -127,7 +127,7 @@ public:
             Instrumental::printVec(b, "b (12, 3)");
         }
 
-        print();
+        print()
 
         {
             // parallel work faster in this case
@@ -144,7 +144,7 @@ public:
         this->prepareParallelDataForTest(psm);
 
         {
-            LOG_DURATION("serial");
+            LOG_DURATION("serial")
 
             matr R(interSize, vec(interSize, 0.));
             vec partB(interSize);
@@ -169,10 +169,10 @@ public:
             // printMatr(R, "R11");
         }
 
-        print();
+        print()
 
         {
-            LOG_DURATION("parallel");
+            LOG_DURATION("parallel")
 
             matr R(interSize, vec(interSize, 0.));
             vec partB(interSize);
@@ -216,7 +216,7 @@ public:
         psm.transformation();
 
         {
-            LOG_DURATION("serial");
+            LOG_DURATION("serial")
 
             std::tie(R, partB) = this->testCollectInterferElemPreprocessing(n, tN);
             this->prepareParallelDataForTest(psm);
@@ -250,10 +250,10 @@ public:
             // printMatr(R, "R12");
         }
 
-        print();
+        print()
 
         {
-            LOG_DURATION("parallel");
+            LOG_DURATION("parallel")
 
             std::tie(R, partB) = this->testCollectInterferElemPreprocessing(n, tN);
             this->prepareParallelDataForTest(psm);
@@ -310,7 +310,7 @@ public:
         psm.transformation();
 
         {
-            LOG_DURATION("serial");
+            LOG_DURATION("serial")
 
             std::tie(R, partB) = this->testCollectInterferElemPostprocessing(n, tN);
             this->prepareParallelDataForTest(psm);
@@ -318,7 +318,6 @@ public:
             for (int i = 0; i < interSize; i += 2) {
                 std::swap(R[i][i], R[i][i + 1]);
                 std::swap(R[i + 1][i], R[i + 1][i + 1]);
-                std::swap(partB[i], partB[i + 1]);
             }
 
             // printMatr(R, "R3");
@@ -326,7 +325,7 @@ public:
         }
 
         {
-            LOG_DURATION("parallel");
+            LOG_DURATION("parallel")
 
             std::tie(R, partB) = this->testCollectInterferElemPostprocessing(n, tN);
             this->prepareParallelDataForTest(psm);
@@ -335,7 +334,6 @@ public:
             for (int i = 0; i < interSize; i += 2) {
                 std::swap(R[i][i], R[i][i + 1]);
                 std::swap(R[i + 1][i], R[i + 1][i + 1]);
-                std::swap(partB[i], partB[i + 1]);
             }
 
             // printMatr(R, "R4");
@@ -343,18 +341,85 @@ public:
         }
     }
 
-    void testSlide11() {
-        ParallelSweepMethod psm(12, 4);
+    static void testCollectPartY() {
+        matr R = {
+                {1.000,    0.000,    0.000,    0.000,    0.000,    0.000},
+                {300.000, -605.000,  300.000,  0.000,    0.000,    0.000},
+                {0.000,    300.000, -605.000,  300.000,  0.000,    0.000},
+                {0.000,    0.000,    300.000, -605.000,  300.000,  0.000},
+                {0.000,    0.000,    0.000,    300.000, -605.000,  300.000},
+                {0.000,    0.000,    0.000,    0.000,    0.000,    1.000}
+        };
+        vec partB = {10.0, 2092.0, 2038.0, 1948.0, 1822.0, 100.0};
+        vec x = {10.0, 13.6, 24.4, 42.4, 67.6, 100.0};
+        size_t interfereSize = 6;
 
-        psm.transformation();
-        psm.testing();
+        {
+            LOG_DURATION("serial")
 
-        // std::tie(R, y1) = psm.collectInterferElem();
+            vec a(interfereSize - 2),
+                c(interfereSize - 2),
+                b(interfereSize - 2),
+                phi(interfereSize - 2);
 
-        this->prepareParallelDataForTest(psm);
+            pairs mu    = std::make_pair(partB[0], partB[interfereSize - 1]);
+            pairs kappa = std::make_pair(-R[0][1], -R[interfereSize - 1][interfereSize - 2]);
+            pairs gamma = std::make_pair(R[0][0], R[interfereSize - 1][interfereSize - 1]);
 
-//        Instrumental::printMatr(A, "A (12, 3)");
-//        Instrumental::printVec(b, "b (12, 3)");
+            for (size_t i = 1; i < interfereSize - 1; i++) {
+                a[i - 1] = R[i][i - 1];
+                c[i - 1] = -R[i][i];
+                b[i - 1] = R[i][i + 1];
+                phi[i - 1] = -partB[i];
+            }
+
+            SerialSweepMethod ssm(a, c, b, phi, kappa, mu, gamma);
+            vec y1 = ssm.run();
+
+            // printf("serial ||R|| = %f\n", ssm.calcR(y1, x));
+
+            for (int i = 0; i < interfereSize - 1; i += 2) {
+                std::swap(y1[i], y1[i + 1]);
+            }
+
+            // printVec(y1, "y1");
+        }
+
+        print()
+
+        {
+            LOG_DURATION("parallel")
+
+            size_t i;
+            vec a(interfereSize - 2),
+                c(interfereSize - 2),
+                b(interfereSize - 2),
+                phi(interfereSize - 2);
+
+            pairs mu    = std::make_pair(partB[0], partB[interfereSize - 1]);
+            pairs kappa = std::make_pair(-R[0][1], -R[interfereSize - 1][interfereSize - 2]);
+            pairs gamma = std::make_pair(R[0][0], R[interfereSize - 1][interfereSize - 1]);
+
+            #pragma omp parallel for private(i) shared(a, c, b, phi, partB, R, interfereSize) num_threads(4) default(none)
+            for (i = 1; i < interfereSize - 1; i++) {
+                a[i - 1] = R[i][i - 1];
+                b[i - 1] = R[i][i + 1];
+                c[i - 1] = -R[i][i];
+                phi[i - 1] = -partB[i];
+            }
+
+            SerialSweepMethod ssm(a, c, b, phi, kappa, mu, gamma);
+            vec y1 = ssm.run();
+
+            // printf("parallel ||R|| = %f\n", ssm.calcR(y1, x));
+
+            #pragma omp parallel for private(i) shared(y1, interfereSize) num_threads(4) default(none)
+            for (i = 0; i < interfereSize - 1; i += 2) {
+                std::swap(y1[i], y1[i + 1]);
+            }
+
+            // printVec(y1, "y2");
+        }
     }
 
     void execute() {
@@ -362,10 +427,10 @@ public:
 //            []() { ParallelAlgorithmComponentTest::testExecutionTime(); },
 //            []() { ParallelAlgorithmComponentTest::testEnteredData(); },
 //            [this]() { this->testSlide3(); }
-//            [this]() { this->testSlide11(); }
 //            [this]() { this->testCollectInterferElemPreprocessing(12, 4); },
-//            [this]() { this->testCollectInterferElemPostprocessing(12, 3); }
-            [this]() { this->testOrderingCoefficient(12, 4); }
+//            [this]() { this->testCollectInterferElemPostprocessing(12, 4); },
+//            [this]() { this->testOrderingCoefficient(12, 4); }
+            []() { ParallelAlgorithmComponentTest::testCollectPartY(); }
         };
 
         BaseComponentTest::execute(tests);

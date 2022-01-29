@@ -6,8 +6,8 @@ int main(int argc, char** argv) {
 	ParallelAlgorithmComponentTest p;
     p.execute();
 
-    SerialAlgorithmComponentTest s;
-    // s.execute();
+//    SerialAlgorithmComponentTest s;
+//    s.execute();
 
 	return 0;
 }

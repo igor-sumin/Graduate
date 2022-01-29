@@ -131,48 +131,43 @@ std::pair<matr, vec> ParallelSweepMethod::collectInterferElem() {
     }
 
 	// ordering the coefficient
-    #pragma omp parallel for shared(R, partB) default(none)
-    for (int i = 0; i < interSize; i += 2) {
+    #pragma omp parallel for private(i) shared(R, partB, interSize) default(none)
+    for (i = 0; i < interSize; i += 2) {
         std::swap(R[i][i], R[i][i + 1]);
         std::swap(R[i + 1][i], R[i + 1][i + 1]);
-        std::swap(partB[i], partB[i + 1]);
     }
 
 	return std::make_pair(R, partB);
 }
 
-vec ParallelSweepMethod::ClassicSweepMethod(const matr& R, const vec& Y1) {
-	vec a(interSize - 2),
-		c(interSize - 2),
-		b(interSize - 2),
-		f(interSize - 2);
+vec ParallelSweepMethod::collectPartY(const matr& R, const vec& partB) {
+    vec a_(interSize - 2),
+        c_(interSize - 2),
+        b_(interSize - 2),
+        phi(interSize - 2);
 
-	pairs mu = std::make_pair(Y1[0], Y1[interSize - 1]);
-	pairs kappa = std::make_pair(-R[0][1], -R[interSize - 1][interSize - 2]);
-	pairs gamma = std::make_pair(R[0][0], R[interSize - 1][interSize - 1]);
+    size_t i;
+    pairs kappa = std::make_pair(-R[0][1], -R[interSize - 1][interSize - 2]);
+    pairs mu = std::make_pair(partB[0], partB[interSize - 1]);
+    pairs gamma = std::make_pair(R[0][0], R[interSize - 1][interSize - 1]);
 
+    #pragma omp parallel for private(i) shared(a_, c_, b_, phi, partB, R, interSize) default(none)
+    for (i = 1; i < interSize - 1; i++) {
+        a_[i - 1] = R[i][i - 1];
+        b_[i - 1] = R[i][i + 1];
+        c_[i - 1] = -R[i][i];
+        phi[i - 1] = -partB[i];
+    }
 
-	#pragma omp parallel sections
-	{
-		#pragma omp section
-		{
-			for (int i = 1; i < interSize - 1; i++) {
-				f[i - 1] = -Y1[i];
-				a[i - 1] = R[i][i - 1];
-			}
-		}
+    SerialSweepMethod ssm(a_, c_, b_, phi, kappa, mu, gamma);
+    vec partY = ssm.run();
 
-		#pragma omp section
-		{
-			for (int i = 1; i < interSize - 1; i++) {
-				b[i - 1] = R[i][i + 1];
-				c[i - 1] = -R[i][i];
-			}
-		}
-	}
+    #pragma omp parallel for private(i) shared(partY, interSize) default(none)
+    for (i = 0; i < interSize - 1; i += 2) {
+        std::swap(partY[i], partY[i + 1]);
+    }
 
-	SerialSweepMethod ssm(a, c, b, f, kappa, mu, gamma);
-	return ssm.run();
+    return partY;
 }
 
 vec ParallelSweepMethod::getY2(vec& Y1) {
@@ -271,7 +266,7 @@ vec ParallelSweepMethod::run() {
 	printVec(Y1, "partB");
 
 	// 3. Solve SLAU (R * X1 = partB) by the classical sweep method
-	vec X1 = ClassicSweepMethod(R, Y1);
+	vec X1 = collectPartY(R, Y1);
 	printVec(X1, "X1");
 
 	// 4. Get the vector of unknowns Y2
