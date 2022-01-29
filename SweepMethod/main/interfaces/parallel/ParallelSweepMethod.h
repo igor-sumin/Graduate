@@ -12,8 +12,6 @@ protected:
 	matr A;
 	vec b, y;
 
-	vec ClassicSweepMethod(const matr& R, const vec& Y1);
-
 	// Getting Y2 from vectors b, Y1
 	vec getY2(vec& Y1);
 
@@ -50,7 +48,7 @@ public:
 
     std::pair<matr, vec> collectInterferElem();
 
-    void testing();
+    vec collectPartY(const matr& R, const vec& partB);
 
     vec run() override;
 };

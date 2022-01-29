@@ -6,13 +6,13 @@
 #include "main/interfaces/AbstractSweepMethod.h"
 
 
-class SerialSweepMethod final : public SerialInstrumental, public AbstractSweepMethod {
-private:
+class SerialSweepMethod : public SerialInstrumental, public AbstractSweepMethod {
+protected:
 	vec Phi;
 	pairs kappa, mu, gamma;
 
 public:
-    SerialSweepMethod() : SerialSweepMethod(5) {}
+    SerialSweepMethod() = default;
 
     explicit SerialSweepMethod(size_t N) :
         SerialSweepMethod(N,vec(N - 1, 1),std::make_pair(0., 0.), std::make_pair(1., 1.), std::make_pair(1., 1.)) {}
@@ -22,8 +22,8 @@ public:
                         Phi(std::move(phi)),
                         kappa(std::move(kappa_)), mu(std::move(mu_)), gamma(std::move(gamma_)) {}
 
-    SerialSweepMethod(vec a, vec c, vec b, vec phi, pairs kappa_, pairs mu_, pairs gamma_) :
-        SerialInstrumental(std::move(a), std::move(c), std::move(b)),
+    SerialSweepMethod(const vec& a, vec c, vec b, vec phi, pairs kappa_, pairs mu_, pairs gamma_) :
+        SerialInstrumental(a, std::move(c), std::move(b)),
         Phi(std::move(phi)),
         kappa(std::move(kappa_)), mu(std::move(mu_)), gamma(std::move(gamma_)) {}
 

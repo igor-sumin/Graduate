@@ -21,7 +21,7 @@ public:
             SerialInstrumental(n, vec(n, 0), vec(n, 0), vec(n, 0)) {}
 
     SerialInstrumental(const vec& a, vec c, vec b) :
-            SerialInstrumental(a.size(), a, std::move(c), std::move(b)) {}
+            SerialInstrumental(a.size() + 1, a, std::move(c), std::move(b)) {}
 
     SerialInstrumental(size_t n, vec a, vec c, vec b) :
             Instrumental(n),
