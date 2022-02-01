@@ -50,5 +50,7 @@ public:
 
     vec collectPartY(const matr& R, const vec& partB);
 
+    void collectNotInterferElem();
+
     vec run() override;
 };
