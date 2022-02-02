@@ -207,14 +207,14 @@ void ParallelSweepMethod::collectNotInterferElem() {
     }
 
     // 2. post-processing (internal part)
-    #pragma omp parallel private(i, j, iter) shared(blockSize, N, b, A, y) num_threads(threadNum - 2) default(none)
+    #pragma omp parallel private(i, j, iter) shared(blockSize, N, b, A, y) num_threads(threadNum - 2) default(none) if(threadNum > 2)
     {
         iter = (omp_get_thread_num() + 1) * blockSize;
 
-        for (i = iter + 1; i < N - blockSize; i += iter) {
-            for (j = i; j < i + iter - 2; j++) {
+        for (i = iter + 1; i < 2 * iter + 1; i += iter) {
+            for (j = i; j < i + blockSize - 2; j++) {
                 // finding coefficients
-                b[j] -= (A[j][i - 2] + A[j][i + iter - 1]);
+                b[j] -= (A[j][i - 2] + A[j][i + blockSize - 1]);
 
                 // finding vector of unknowns
                 y[j] = b[j] / A[i][i];
