@@ -67,6 +67,40 @@ public:
         }
     }
 
+    void testTransformation() {
+        // creation
+        ParallelSweepMethod psm(12, 3);
+        this->prepareParallelDataForTest(psm);
+
+        size_t i, j, k;
+        double coef;
+        int iter;
+
+        #pragma omp parallel private(i, j, k, coef, iter) shared(A, b, blockSize, N) default(none)
+        {
+            iter = omp_get_thread_num();
+
+            // top-down
+            for (i = iter * blockSize + 1; i < (iter + 1) * blockSize; i++) {
+                coef = A[i][i - 1] / A[i - 1][i - 1];
+                for (j = 0; j < i + 1; j++) {
+                    A[i][j] -= coef * A[i - 1][j];
+                }
+                b[i] -= coef * b[i - 1];
+            }
+
+            // bottom-up
+            for (k = (iter + 1) * blockSize - 1; k > iter * blockSize; k--) {
+                i = k - 1;
+                coef = A[i][i + 1] / A[i + 1][i + 1];
+                for (j = i; j < N - 1; j++) {
+                    A[i][j + 1] -= coef * A[i + 1][j + 1];
+                }
+                b[i] -= coef * b[i + 1];
+            }
+        }
+    }
+
     void testSlide3() {
         std::cout << "III) Checking the correctness of the algorithm on the slide 3:\n";
 
@@ -222,61 +256,18 @@ public:
             this->prepareParallelDataForTest(psm);
 
             // 2. post-processing (internal part)
-            for (size_t i = blockSize, k = 1; i < N - blockSize; i += blockSize, k += 2) {
-                for (size_t j = blockSize, l = 1; j < N - blockSize; j += blockSize, l += 2) {
+            if (tN > 2) {
+                for (size_t i = blockSize, k = 1; i < N - blockSize; i += blockSize, k += 2) {
+                    for (size_t j = blockSize, l = 1; j < N - blockSize; j += blockSize, l += 2) {
 
-                    // a1 ----- a2
-                    // |         |
-                    // |         |
-                    // a3 ----- a4
-                    double a1 = A[i][j];
-                    double a2 = A[i][j + blockSize - 1];
-                    double a3 = A[i + blockSize - 1][j];
-                    double a4 = A[i + blockSize - 1][j + blockSize - 1];
-
-                    if (a1 != 0 && a4 != 0) {
-                        R[k][l] = a1;
-                        R[k + 1][l + 1] = a4;
-                    } else if (a1 != 0) {
-                        R[k][l - 1] = a1;
-                        R[k + 1][l] = a3;
-                    } else if (a4 != 0) {
-                        R[k][l + 1] = a2;
-                        R[k + 1][l + 2] = a4;
-                    }
-                }
-            }
-
-            // printMatr(R, "R12");
-        }
-
-        print()
-
-        {
-            LOG_DURATION("parallel")
-
-            std::tie(R, partB) = this->testCollectInterferElemPreprocessing(n, tN);
-            this->prepareParallelDataForTest(psm);
-
-            size_t k = 1, l = 1;
-            size_t iter, jter;
-            size_t i, j;
-            double a1, a2, a3, a4;
-
-            #pragma omp parallel private(iter, jter, i, j, a1, a2, a3, a4) firstprivate(k, l) shared(A, R, blockSize) default(none)
-            {
-                iter = (omp_get_thread_num() + 1) * blockSize;
-
-                for (i = iter; i < N - iter; i += iter) {
-                    for (j = iter; j < N - iter; j += iter) {
                         // a1 ----- a2
                         // |         |
                         // |         |
                         // a3 ----- a4
-                        a1 = A[i][j];
-                        a2 = A[i][j + blockSize - 1];
-                        a3 = A[i + blockSize - 1][j];
-                        a4 = A[i + blockSize - 1][j + blockSize - 1];
+                        double a1 = A[i][j];
+                        double a2 = A[i][j + blockSize - 1];
+                        double a3 = A[i + blockSize - 1][j];
+                        double a4 = A[i + blockSize - 1][j + blockSize - 1];
 
                         if (a1 != 0 && a4 != 0) {
                             R[k][l] = a1;
@@ -288,16 +279,63 @@ public:
                             R[k][l + 1] = a2;
                             R[k + 1][l + 2] = a4;
                         }
-
-                        l += 2;
                     }
-
-                    l = 1;
-                    k += 2;
                 }
             }
 
-            // printMatr(R, "R22");
+            printMatr(R, "R12");
+        }
+
+        print()
+
+        {
+            LOG_DURATION("parallel")
+
+            std::tie(R, partB) = this->testCollectInterferElemPreprocessing(n, tN);
+            this->prepareParallelDataForTest(psm);
+
+            size_t k = 1, l = 1;
+            size_t iter;
+            size_t i, j;
+            double a1, a2, a3, a4;
+
+            if (threadNum > 2) {
+                #pragma omp parallel private(iter, i, j, a1, a2, a3, a4) firstprivate(k, l) shared(A, R, blockSize) num_threads(threadNum - 2) default(none)
+                {
+                    iter = (omp_get_thread_num() + 1) * blockSize;
+
+                    for (i = iter; i < N - blockSize; i += iter) {
+                        for (j = iter; j < N - blockSize; j += iter) {
+                            // a1 ----- a2
+                            // |         |
+                            // |         |
+                            // a3 ----- a4
+                            a1 = A[i][j];
+                            a2 = A[i][j + blockSize - 1];
+                            a3 = A[i + blockSize - 1][j];
+                            a4 = A[i + blockSize - 1][j + blockSize - 1];
+
+                            if (a1 != 0 && a4 != 0) {
+                                R[k][l] = a1;
+                                R[k + 1][l + 1] = a4;
+                            } else if (a1 != 0) {
+                                R[k][l - 1] = a1;
+                                R[k + 1][l] = a3;
+                            } else if (a4 != 0) {
+                                R[k][l + 1] = a2;
+                                R[k + 1][l + 2] = a4;
+                            }
+
+                            l += 2;
+                        }
+
+                        l = 1;
+                        k += 2;
+                    }
+                }
+            }
+
+            printMatr(R, "R22");
 
             return std::make_pair(R, partB);
         }
@@ -422,15 +460,179 @@ public:
         }
     }
 
+    void testCollectNotInterferElemPreprocessing(int n, int tN) {
+        {
+            ParallelSweepMethod psm(n, tN);
+            psm.transformation();
+            this->prepareParallelDataForTest(psm);
+
+            printVec(b, "b11");
+
+            LOG_DURATION("serial");
+
+            // 1. extreme part
+            size_t last = N - blockSize - 1;
+            for (size_t i = 0; i < blockSize - 1; i++) {
+                size_t j = N - i - 1;
+
+                // finding coefficients
+                b[i] -= A[i][blockSize];
+                b[j] -= A[j][last];
+
+                // finding vector of unknowns
+                y[i] = b[i] / A[i][i];
+                y[j] = b[j] / A[j][j];
+            }
+
+            printVec(b, "b21");
+            printVec(y, "y");
+        }
+
+        print()
+
+        {
+            ParallelSweepMethod psm(n, tN);
+            psm.transformation();
+            this->prepareParallelDataForTest(psm);
+
+            printVec(b, "b21");
+
+            LOG_DURATION("parallel")
+
+            size_t i, j;
+            size_t last = N - blockSize - 1;
+
+            // 1. extreme part
+            #pragma omp parallel for private(i, j) firstprivate(last) shared(blockSize, N, b, A, y) num_threads(2) default(none)
+            for (i = 0; i < blockSize - 1; i++) {
+                j = N - i - 1;
+
+                // finding coefficients
+                b[i] -= A[i][blockSize];
+                b[j] -= A[j][last];
+
+                // finding vector of unknowns
+                y[i] = b[i] / A[i][i];
+                y[j] = b[j] / A[j][j];
+            }
+
+            printVec(b, "b22");
+            printVec(y, "y");
+        }
+    }
+
+    void testCollectNotInterferElemPostprocessing(int n, int tN) {
+        {
+            ParallelSweepMethod psm(n, tN);
+            psm.transformation();
+            this->prepareParallelDataForTest(psm);
+
+            size_t i, j, iter;
+
+            LOG_DURATION("serial")
+
+            for (i = blockSize + 1; i < N - blockSize; i += blockSize) {
+                for (j = i; j < i + blockSize - 2; j++) {
+                    // finding coefficients
+                    b[j] -= (A[j][i - 2] + A[j][i + blockSize - 1]);
+
+                    // finding vector of unknowns
+                    y[j] = b[j] / A[i][i];
+                }
+            }
+
+            printVec(b, "b1");
+            printVec(y, "y1");
+        }
+
+        print()
+
+        {
+            ParallelSweepMethod psm(n, tN);
+            psm.transformation();
+            this->prepareParallelDataForTest(psm);
+
+            size_t i, j;
+
+            LOG_DURATION("parallel")
+
+            printVec(y, "y");
+
+            if (threadNum > 2) {
+                #pragma omp parallel private(i, j) shared(blockSize, N, b, A, y) num_threads(threadNum - 2) default(none)
+                {
+                    i = (omp_get_thread_num() + 1) * blockSize + 1;
+
+                    for (j = i; j < i + blockSize - 2; j++) {
+                        // finding coefficients
+                        b[j] -= (A[j][i - 2] + A[j][i + blockSize - 1]);
+
+                        // finding vector of unknowns
+                        y[j] = b[j] / A[i][i];
+                    }
+                }
+            }
+
+            printVec(b, "b2");
+            printVec(y, "y2");
+        }
+    }
+
+    void testCollectNotInterferElem(int n, int tN) {
+        ParallelSweepMethod psm(n, tN);
+        psm.transformation();
+        this->prepareParallelDataForTest(psm);
+
+        size_t i, j;
+        size_t last = N - blockSize - 1;
+
+        // 1. extreme part
+        #pragma omp parallel for private(i, j) firstprivate(last) shared(blockSize, N, b, A, y) num_threads(2) default(none)
+        for (i = 0; i < blockSize - 1; i++) {
+            j = N - i - 1;
+
+            // finding coefficients
+            b[i] -= A[i][blockSize];
+            b[j] -= A[j][last];
+
+            // finding vector of unknowns
+            y[i] = b[i] / A[i][i];
+            y[j] = b[j] / A[j][j];
+        }
+
+        // 2. internal part
+        if(threadNum > 2) {
+            #pragma omp parallel private(i, j) shared(blockSize, N, b, A, y) num_threads(threadNum - 2) default(none)
+            {
+                i = (omp_get_thread_num() + 1) * blockSize + 1;
+
+                for (j = i; j < i + blockSize - 2; j++) {
+                    // finding coefficients
+                    b[j] -= (A[j][i - 2] + A[j][i + blockSize - 1]);
+
+                    // finding vector of unknowns
+                    y[j] = b[j] / A[i][i];
+                }
+            }
+        }
+
+        printVec(b, "b");
+        printVec(y, "y");
+    }
+
     void execute() {
         std::vector<std::function<void()>> tests = {
 //            []() { ParallelAlgorithmComponentTest::testExecutionTime(); },
 //            []() { ParallelAlgorithmComponentTest::testEnteredData(); },
+//                [this]() {this->testTransformation(); }
 //            [this]() { this->testSlide3(); }
-//            [this]() { this->testCollectInterferElemPreprocessing(12, 4); },
-//            [this]() { this->testCollectInterferElemPostprocessing(12, 4); },
+//            [this]() { this->testCollectInterferElemPreprocessing(12, 4); }, // TODO: condition (8, 2)
+//            [this]() { this->testCollectInterferElemPostprocessing(8, 2); },
 //            [this]() { this->testOrderingCoefficient(12, 4); }
-            []() { ParallelAlgorithmComponentTest::testCollectPartY(); }
+//            []() { ParallelAlgorithmComponentTest::testCollectPartY(); },
+//            [this]() { this->testCollectNotInterferElemPreprocessing(16, 4); }
+//             [this]() { this->testCollectNotInterferElemPostprocessing(8, 2); }
+            [this]() {this->testCollectNotInterferElem(16, 4); }
         };
 
         BaseComponentTest::execute(tests);
