@@ -299,38 +299,39 @@ public:
             size_t i, j;
             double a1, a2, a3, a4;
 
-            #pragma omp parallel private(iter, i, j, a1, a2, a3, a4) firstprivate(k, l) shared(A, R, blockSize) \
-                num_threads(threadNum - 2) default(none) if (threadNum > 2)
-            {
-                iter = (omp_get_thread_num() + 1) * blockSize;
+            if (threadNum > 2) {
+                #pragma omp parallel private(iter, i, j, a1, a2, a3, a4) firstprivate(k, l) shared(A, R, blockSize) num_threads(threadNum - 2) default(none)
+                {
+                    iter = (omp_get_thread_num() + 1) * blockSize;
 
-                for (i = iter; i < N - blockSize; i += iter) {
-                    for (j = iter; j < N - blockSize; j += iter) {
-                        // a1 ----- a2
-                        // |         |
-                        // |         |
-                        // a3 ----- a4
-                        a1 = A[i][j];
-                        a2 = A[i][j + blockSize - 1];
-                        a3 = A[i + blockSize - 1][j];
-                        a4 = A[i + blockSize - 1][j + blockSize - 1];
+                    for (i = iter; i < N - blockSize; i += iter) {
+                        for (j = iter; j < N - blockSize; j += iter) {
+                            // a1 ----- a2
+                            // |         |
+                            // |         |
+                            // a3 ----- a4
+                            a1 = A[i][j];
+                            a2 = A[i][j + blockSize - 1];
+                            a3 = A[i + blockSize - 1][j];
+                            a4 = A[i + blockSize - 1][j + blockSize - 1];
 
-                        if (a1 != 0 && a4 != 0) {
-                            R[k][l] = a1;
-                            R[k + 1][l + 1] = a4;
-                        } else if (a1 != 0) {
-                            R[k][l - 1] = a1;
-                            R[k + 1][l] = a3;
-                        } else if (a4 != 0) {
-                            R[k][l + 1] = a2;
-                            R[k + 1][l + 2] = a4;
+                            if (a1 != 0 && a4 != 0) {
+                                R[k][l] = a1;
+                                R[k + 1][l + 1] = a4;
+                            } else if (a1 != 0) {
+                                R[k][l - 1] = a1;
+                                R[k + 1][l] = a3;
+                            } else if (a4 != 0) {
+                                R[k][l + 1] = a2;
+                                R[k + 1][l + 2] = a4;
+                            }
+
+                            l += 2;
                         }
 
-                        l += 2;
+                        l = 1;
+                        k += 2;
                     }
-
-                    l = 1;
-                    k += 2;
                 }
             }
 
@@ -551,15 +552,17 @@ public:
             psm.transformation();
             this->prepareParallelDataForTest(psm);
 
-            size_t i, j, iter;
+            size_t i, j;
 
             LOG_DURATION("parallel")
 
-            #pragma omp parallel private(i, j, iter) shared(blockSize, N, b, A, y) num_threads(threadNum - 2) default(none) if(threadNum > 2)
-            {
-                iter = (omp_get_thread_num() + 1) * blockSize;
+            printVec(y, "y");
 
-                for (i = iter + 1; i < 2 * iter + 1; i += iter) {
+            if (threadNum > 2) {
+                #pragma omp parallel private(i, j) shared(blockSize, N, b, A, y) num_threads(threadNum - 2) default(none)
+                {
+                    i = (omp_get_thread_num() + 1) * blockSize + 1;
+
                     for (j = i; j < i + blockSize - 2; j++) {
                         // finding coefficients
                         b[j] -= (A[j][i - 2] + A[j][i + blockSize - 1]);
@@ -580,7 +583,7 @@ public:
         psm.transformation();
         this->prepareParallelDataForTest(psm);
 
-        size_t i, j, iter;
+        size_t i, j;
         size_t last = N - blockSize - 1;
 
         // 1. extreme part
@@ -598,11 +601,11 @@ public:
         }
 
         // 2. internal part
-        #pragma omp parallel private(i, j, iter) shared(blockSize, N, b, A, y) num_threads(threadNum - 2) default(none) if(threadNum > 2)
-        {
-            iter = (omp_get_thread_num() + 1) * blockSize;
+        if(threadNum > 2) {
+            #pragma omp parallel private(i, j) shared(blockSize, N, b, A, y) num_threads(threadNum - 2) default(none)
+            {
+                i = (omp_get_thread_num() + 1) * blockSize + 1;
 
-            for (i = iter + 1; i < 2 * iter + 1; i += iter) {
                 for (j = i; j < i + blockSize - 2; j++) {
                     // finding coefficients
                     b[j] -= (A[j][i - 2] + A[j][i + blockSize - 1]);
@@ -628,7 +631,7 @@ public:
 //            [this]() { this->testOrderingCoefficient(12, 4); }
 //            []() { ParallelAlgorithmComponentTest::testCollectPartY(); },
 //            [this]() { this->testCollectNotInterferElemPreprocessing(16, 4); }
-//             [this]() { this->testCollectNotInterferElemPostprocessing(16, 4); }
+//             [this]() { this->testCollectNotInterferElemPostprocessing(8, 2); }
             [this]() {this->testCollectNotInterferElem(16, 4); }
         };
 
