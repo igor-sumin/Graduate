@@ -379,7 +379,7 @@ public:
         }
     }
 
-    static void testCollectPartY() {
+    static vec testCollectPartY() {
         matr R = {
                 {1.000,    0.000,    0.000,    0.000,    0.000,    0.000},
                 {300.000, -605.000,  300.000,  0.000,    0.000,    0.000},
@@ -457,6 +457,8 @@ public:
             }
 
             // printVec(y1, "y2");
+
+            return y1;
         }
     }
 
@@ -616,8 +618,50 @@ public:
             }
         }
 
-        printVec(b, "b");
-        printVec(y, "y");
+//        printVec(b, "b");
+//        printVec(y, "y");
+    }
+
+    void testCollectFullY(int n, int tN) {
+        {
+            LOG_DURATION("serial")
+
+            this->testCollectNotInterferElem(n, tN);
+            vec partY((tN - 1) * 2, 1.);
+
+            size_t iter, k = 0;
+
+            for (iter = 0; iter < tN - 1; iter++) {
+                size_t i = (iter + 1) * blockSize;
+                y[i - 1] = partY[k++];
+                y[i] = partY[k++];
+            }
+
+//            printVec(y, "y");
+//            printVec(partY, "partY");
+        }
+
+        print()
+
+        {
+            LOG_DURATION("parallel")
+
+            this->testCollectNotInterferElem(n, tN);
+            vec partY((tN - 1) * 2, 1.);
+
+            size_t i, k = 0;
+
+            #pragma omp parallel private(i) firstprivate(k) shared(blockSize, y, partY) num_threads(threadNum - 1) default(none)
+            {
+                i = (omp_get_thread_num() + 1) * blockSize;
+
+                y[i - 1] = partY[k++];
+                y[i] = partY[k++];
+            }
+
+//            printVec(y, "y");
+//            printVec(partY, "partY");
+        }
     }
 
     void execute() {
@@ -632,7 +676,8 @@ public:
 //            []() { ParallelAlgorithmComponentTest::testCollectPartY(); },
 //            [this]() { this->testCollectNotInterferElemPreprocessing(16, 4); }
 //             [this]() { this->testCollectNotInterferElemPostprocessing(8, 2); }
-            [this]() {this->testCollectNotInterferElem(16, 4); }
+//            [this]() {this->testCollectNotInterferElem(16, 4); },
+            [this]() {this->testCollectFullY(16, 4); },
         };
 
         BaseComponentTest::execute(tests);

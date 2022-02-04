@@ -28,10 +28,14 @@ public:
         kappa(std::move(kappa_)), mu(std::move(mu_)), gamma(std::move(gamma_)) {}
 
     // Getting protected fields
-    std::tuple<vec, vec, size_t, size_t, double, vec, vec, vec, vec, vec, pairs, pairs, pairs> getFields() const;
+    std::tuple<vec, vec, size_t, size_t, double, vec,
+               vec, vec, vec,
+               vec, pairs, pairs, pairs> getFields() const;
 
     // Setting protected fields
-    void setAllFields(vec v, vec u, size_t N, size_t node, double h, vec x, vec A, vec C, vec B, vec Phi, pairs kappa, pairs mu, pairs gamma);
+    void setAllFields(const vec& v, const vec& u, size_t N, size_t node, double h, const vec& x,
+                      const vec& A, const vec& C, const vec& B,
+                      const vec& Phi_, pairs kappa_, pairs mu_, pairs gamma_);
 
     /*
      * Sequential implementation of sweep method

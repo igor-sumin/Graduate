@@ -12,13 +12,6 @@ protected:
 	matr A;
 	vec b, y;
 
-	// Getting Y2 from vectors b, Y1
-	vec getY2(vec& Y1);
-
-	vec getX2(vec& Y2);
-
-	vec result(const vec& X1, const vec& X2);
-
     // preprocessing Upper Left Corner of the matrix R
     void preULR(matr& R);
 
@@ -42,7 +35,7 @@ public:
     std::tuple<size_t, size_t, size_t, size_t, matr, vec, vec> getAllFields() const;
 
     // Setting protected fields
-    void setAllFields(size_t N, size_t threadNum, size_t blockSize, size_t classicSize, matr A, vec b, vec y);
+    void setAllFields(size_t N, size_t threadNum, size_t blockSize, size_t classicSize, const matr& A_, const vec& b_, const vec& y_);
 
     void transformation();
 
@@ -52,5 +45,10 @@ public:
 
     void collectNotInterferElem();
 
+    void collectFullY(const vec& partY);
+
+    /*
+     * ...
+    */
     vec run() override;
 };

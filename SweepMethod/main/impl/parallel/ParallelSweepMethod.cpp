@@ -6,14 +6,14 @@ std::tuple<size_t, size_t, size_t, size_t, matr, vec, vec> ParallelSweepMethod::
     return std::make_tuple(N, threadNum, blockSize, interSize, A, b, y);
 }
 
-void ParallelSweepMethod::setAllFields(size_t N, size_t threadNum, size_t blockSize, size_t interSize, matr A, vec b, vec y) {
+void ParallelSweepMethod::setAllFields(size_t N, size_t threadNum, size_t blockSize, size_t interSize, const matr& A_, const vec& b_, const vec& y_) {
     this->N = N;
     this->threadNum = threadNum;
     this->blockSize = blockSize;
     this->interSize = interSize;
-    this->A = std::move(A);
-    this->b = std::move(b);
-    this->y = std::move(y);
+    this->A = A_;
+    this->b = b_;
+    this->y = y_;
 }
 
 void ParallelSweepMethod::transformation() {
@@ -172,24 +172,6 @@ vec ParallelSweepMethod::collectPartY(const matr& R, const vec& partB) {
     return partY;
 }
 
-vec ParallelSweepMethod::getY2(vec& Y1) {
-	vec Y2;
-
-	std::copy_if(b.begin(), b.end(),
-		std::back_inserter(Y2),
-		std::bind(
-			std::equal_to<>(),
-			std::bind(
-				std::find<std::vector<double>::iterator, double>,
-				Y1.begin(), Y1.end(), std::placeholders::_1
-			), Y1.end()
-		)
-	);
-
-	return Y2;
-}
-
-
 void ParallelSweepMethod::collectNotInterferElem() {
     size_t i, j;
     size_t last = N - blockSize - 1;
@@ -225,65 +207,18 @@ void ParallelSweepMethod::collectNotInterferElem() {
     }
 }
 
-vec ParallelSweepMethod::result(const vec& X1, const vec& X2) {
-	vec X(N);
+void ParallelSweepMethod::collectFullY(const vec& partY) {
+    size_t i, k = 0;
 
-    // 1. preprocessing (extreme parts)
-    // -> upper + lower
-	for (int i = 0; i < blockSize - 1; i++) {
-		int j = N - i - 1;
+    #pragma omp parallel private(i) firstprivate(k) shared(blockSize, y, partY) num_threads(threadNum - 1) default(none)
+    {
+        i = (omp_get_thread_num() + 1) * blockSize;
 
-		X[i] = X2[i];
-		X[j] = X2[j - interSize];
-	}
-
-	int i = 0,
-		j = blockSize - 1,
-		k = blockSize - 1;
-
-    // 2. post-processing (internal part)
-	while (k < N - blockSize) {
-		for (int jiter = 0; jiter < 2; jiter++) {
-			X[k++] = X1[i++];
-		}
-
-		for (int kiter = 0; kiter < blockSize - 2; kiter++) {
-			X[k++] = X2[j++];
-		}
-	}
-
-	return X;
+        y[i - 1] = partY[k++];
+        y[i] = partY[k++];
+    }
 }
 
 vec ParallelSweepMethod::run() {
-	printMatr(A, "A1");
-	printVec(b, "b");
-
-    // 1. Reduction of the matrix to columnar views
-    transformation();
-
-	printMatr(A, "A2");
-
-    // 2. From the matrix R for a serial sweep method along with the vector of unknowns partB
-	matr R; vec Y1;
-	std::tie(R, Y1) = collectInterferElem();
-
-	printMatr(R, "R2");
-	printVec(Y1, "partB");
-
-	// 3. Solve SLAU (R * X1 = partB) by the classical sweep method
-	vec X1 = collectPartY(R, Y1);
-	printVec(X1, "X1");
-
-	// 4. Get the vector of unknowns Y2
-	vec Y2 = getY2(Y1);
-	printVec(Y2, "Y2");
-
-	// 5. Find the vector of unknowns X2
-//	vec X2 = getX2(Y2);
-    vec X2 = {};
-//	printVec(X2, "X2");
-
-	// 6. Group vectors of unknowns X1, X2 into X
-	return result(X1, X2);
+    // ...
 }
