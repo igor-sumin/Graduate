@@ -25,10 +25,10 @@ private:
 public:
     SerialAlgorithmComponentTest() : SerialSweepMethod() {}
 
-    void testModelTask() {
-        std::cout << "III) Module 7. Model task for estimating computational error:\n";
-
-        // creation
+    /*
+     * Module 7. Model task for estimating computational error (Serial realization)
+     */
+    void testTask7() {
         SerialSweepMethod ssm(5);
         this->prepareSerialDataForTest(ssm);
 
@@ -49,20 +49,12 @@ public:
             Phi[i] = 450. * x[i + 1] * x[i + 1] - 2110.;
         }
 
-        printVec(u, "u");
-        printVec(A, "a");
-        printVec(C, "c");
-        printVec(B, "b");
-        printVec(Phi, "phi");
-
         this->setSerialFields(ssm);
 
         // execution
         v = ssm.run();
 
-        printVec(v, "v");
-
-        ASSERT_FOR_DOUBLES(u, v);
+        Instrumental::compareVec(u, v);
 
         // check
         Phi.assign(node, 1);
@@ -74,15 +66,18 @@ public:
         this->setSerialFields(ssm);
         vec res = Instrumental::calcMatrVecMult(ssm.createMatr(), v);
 
-        printf("The scheme (SLAU) is solved with a discrepancy ||R|| = %f\n", ssm.calcR(res, Phi));
-        printf("Estimation of the scheme error Z = %f\n", ssm.calcZ());
+//        printf("The scheme (SLAU) is solved with a discrepancy ||R|| = %f\n", ssm.calcR(res, Phi));
+//        printf("Estimation of the scheme error Z = %f\n", ssm.calcZ());
+
+        Instrumental::compareDouble(ssm.calcR(res, Phi), 0);
+        Instrumental::compareDouble(ssm.calcZ(), 0);
     }
 
     void execute() {
         std::vector<std::function<void()>> tests = {
-            [this]() { this->testModelTask(); },
+                [this]() { this->testTask7(); }
         };
 
-        BaseComponentTest::execute(tests);
+        BaseComponentTest::execute(tests, "Serial Component Test");
     }
 };

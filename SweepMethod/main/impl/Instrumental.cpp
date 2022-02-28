@@ -1,4 +1,5 @@
 #include "main/interfaces/Instrumental.h"
+#include <test/common/TestRunner.h>
 
 #include <ctime>
 
@@ -15,9 +16,6 @@ void Instrumental::setN(size_t n) {
 }
 
 void Instrumental::setUV(vec& u_, vec& v_) {
-	Instrumental::printVec(u_, "u");
-	Instrumental::printVec(v_, "v");
-
 	u = u_;
 	v = v_;
 }
@@ -69,15 +67,16 @@ double Instrumental::calcR(const vec& x, const vec& b) const {
 
 vec Instrumental::calcMatrVecMult(const matr& A, const vec& b) {
 	size_t n = A.size();
+    size_t i, j;
+
 	vec res(n);
 
-	#pragma omp parallel shared(res, n, A, b) default(none)
-	{
-		#pragma omp for
-		for (size_t i = 0; i < n; i++)
-			for (size_t j = 0; j < n; j++)
-				res[i] += A[i][j] * b[j];
-	}
+	#pragma omp parallel for private(i, j) shared(res, n, A, b) default(none)
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            res[i] += A[i][j] * b[j];
+        }
+    }
 
 	return res;
 }
@@ -90,4 +89,34 @@ double Instrumental::calcZ() const {
 	}
 
 	return Z;
+}
+
+bool Instrumental::compareDouble(double a, double b) {
+    return std::fabs(a - b) <= EPS;
+}
+
+bool Instrumental::compareMatr(const matr& a, const matr& b) {
+    size_t n = a.size();
+    size_t i, j;
+
+    #pragma omp parallel for private(i, j) shared(a, b, n) default(none)
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            Instrumental::compareDouble(a[i][j], b[i][j]);
+        }
+    }
+
+    return true;
+}
+
+bool Instrumental::compareVec(const vec& a, const vec& b) {
+    size_t n = a.size();
+    size_t i;
+
+    #pragma omp parallel for private(i) shared(a, b, n) default(none)
+    for (i = 0; i < n; i++) {
+        Instrumental::compareDouble(a[i], b[i]);
+    }
+
+    return true;
 }

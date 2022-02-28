@@ -59,4 +59,13 @@ public:
 
 	// Getting protected fields
 	std::tuple<size_t, size_t, vec, vec> getAllFields() const;
+
+    // Compare of two doubles
+    static bool compareDouble(double a, double b);
+
+    // Comparison of two matrices
+    static bool compareMatr(const matr& a, const matr& b);
+
+    // Comparison of two vectors
+    static bool compareVec(const vec& a, const vec& b);
 };

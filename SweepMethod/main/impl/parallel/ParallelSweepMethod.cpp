@@ -17,33 +17,40 @@ void ParallelSweepMethod::setAllFields(size_t N, size_t threadNum, size_t blockS
 }
 
 void ParallelSweepMethod::transformation() {
-    size_t i, j, k;
+    size_t i, j, k, h;
     double coef;
-    int iter;
+    size_t iter, start, end;
 
-    #pragma omp parallel private(i, j, k, coef, iter) shared(A, b, blockSize, N) default(none)
+    #pragma omp parallel private(i, j, k, h, iter, start, end, coef) shared(blockSize, N) default(none)
     {
-        iter = omp_get_thread_num();
+        iter  = omp_get_thread_num() * blockSize;
+        start = iter;
+        end   = iter + blockSize;
 
-        // top-down
-        for (i = iter * blockSize + 1; i < (iter + 1) * blockSize; i++) {
-            coef = A[i][i - 1] / A[i - 1][i - 1];
-            for (j = 0; j < i + 1; j++) {
-                A[i][j] -= coef * A[i - 1][j];
+        for (j = start; j < end - 1; j++) {
+            for (i = j + 1; i < end; i++) {
+                coef = A[i][j] / A[j][j];
+                for (k = 0; k < N; k++) {
+                    A[i][k] -= coef * A[j][k];
+                }
+                b[i] -= coef * b[j];
             }
-            b[i] -= coef * b[i - 1];
         }
 
-        // bottom-up
-        for (k = (iter + 1) * blockSize - 1; k > iter * blockSize; k--) {
-            i = k - 1;
-            coef = A[i][i + 1] / A[i + 1][i + 1];
-            for (j = i; j < N - 1; j++) {
-                A[i][j + 1] -= coef * A[i + 1][j + 1];
+        for (j = end - 1; j > start; j--) {
+            for (h = j; h > start; h--) {
+                i = h - 1;
+                coef = A[i][j] / A[j][j];
+                for (k = 0; k < N; k++) {
+                    A[i][k] -= coef * A[j][k];
+                }
+                b[i] -= coef * b[j];
             }
-            b[i] -= coef * b[i + 1];
         }
     }
+
+//    printMatr(A, "A");
+//    printVec(b, "b");
 }
 
 void ParallelSweepMethod::preULR(matr& R) {
@@ -71,32 +78,33 @@ std::pair<matr, vec> ParallelSweepMethod::collectInterferElem() {
     size_t i, j, s;
     double a1, a2, a3, a4;
 
-    // 1. pre-processing (extreme part)
-    #pragma omp parallel private(s, iter) shared(R, partB) num_threads(threadNum - 1) default(none)
-    {
-        iter = omp_get_thread_num();
+    if (threadNum > 2) {
 
-        #pragma omp taskgroup
+        // 1. pre-processing (extreme part)
+        #pragma omp parallel private(s, iter) shared(R, partB) num_threads(threadNum - 1) default(none)
         {
-            // (extreme parts 1)
-            #pragma omp task shared(R) default(none)
-            this->preULR(R);
+            iter = omp_get_thread_num();
 
-            // (extreme parts 2)
-            #pragma omp task shared(R) default(none)
-            this->preLRR(R);
+            #pragma omp taskgroup
+            {
+                // (extreme parts 1)
+                #pragma omp task shared(R) default(none)
+                this->preULR(R);
 
-            // filling intersecting elements from vector b to partB
-            #pragma omp taskloop private(s) firstprivate(iter) shared(partB) default(none)
-            for (s = iter; s < iter + 1; s++) {
-                partB[2 * s] = b[(s + 1) * blockSize - 1];
-                partB[2 * s + 1] = b[(s + 1) * blockSize];
+                // (extreme parts 2)
+                #pragma omp task shared(R) default(none)
+                this->preLRR(R);
+
+                // filling intersecting elements from vector b to partB
+                #pragma omp taskloop private(s) firstprivate(iter) shared(partB) default(none)
+                for (s = iter; s < iter + 1; s++) {
+                    partB[2 * s] = b[(s + 1) * blockSize - 1];
+                    partB[2 * s + 1] = b[(s + 1) * blockSize];
+                }
             }
         }
-    }
 
-    // 2. post-processing (internal part)
-    if (threadNum > 2) {
+        // 2. post-processing (internal part)
         #pragma omp parallel private(iter, i, j, a1, a2, a3, a4) firstprivate(k, l) shared(A, R, blockSize) default(none)
         {
             iter = (omp_get_thread_num() + 1) * blockSize;
@@ -129,6 +137,21 @@ std::pair<matr, vec> ParallelSweepMethod::collectInterferElem() {
                 l = 1;
                 k += 2;
             }
+        }
+    } else {
+        size_t bS1 = blockSize - 1;
+
+        R[0][0] = A[bS1][bS1];
+        R[0][1] = A[bS1][blockSize];
+        R[1][0] = A[blockSize][bS1];
+        R[1][1] = A[blockSize][blockSize];
+
+        k = 0;
+
+        #pragma omp parallel for private(i, iter) firstprivate(k) shared(N, blockSize, b, partB) default(none)
+        for (i = (omp_get_thread_num() + 1) * blockSize; i < N; i += iter) {
+            partB[k++] = b[i - 1];
+            partB[k++] = b[i];
         }
     }
 
@@ -182,8 +205,8 @@ void ParallelSweepMethod::collectNotInterferElem() {
         j = N - i - 1;
 
         // finding coefficients
-        b[i] -= A[i][blockSize];
-        b[j] -= A[j][last];
+        b[i] -= A[i][blockSize] * y[blockSize];
+        b[j] -= A[j][last] * y[last];
 
         // finding vector of unknowns
         y[i] = b[i] / A[i][i];
@@ -198,27 +221,41 @@ void ParallelSweepMethod::collectNotInterferElem() {
 
             for (j = i; j < i + blockSize - 2; j++) {
                 // finding coefficients
-                b[j] -= (A[j][i - 2] + A[j][i + blockSize - 1]);
+                b[j] -= (A[j][i - 2] * y[i - 2] + A[j][i + blockSize - 1] * y[i + blockSize - 1]);
 
                 // finding vector of unknowns
-                y[j] = b[j] / A[i][i];
+                y[j] = b[j] / A[j][j];
             }
         }
     }
 }
 
-void ParallelSweepMethod::collectFullY(const vec& partY) {
-    size_t i, k = 0;
+vec ParallelSweepMethod::collectFullY(const vec& partY) {
+    size_t i, iter;
+    size_t k = 2;
 
-    #pragma omp parallel private(i) firstprivate(k) shared(blockSize, y, partY) num_threads(threadNum - 1) default(none)
+    #pragma omp parallel private(i, iter) firstprivate(k) shared(blockSize, y, partY) num_threads(threadNum - 1) default(none)
     {
-        i = (omp_get_thread_num() + 1) * blockSize;
+        iter = omp_get_thread_num();
+        i = (iter + 1) * blockSize;
 
-        y[i - 1] = partY[k++];
-        y[i] = partY[k++];
+        y[i - 1] = partY[iter * k];
+        y[i] = partY[iter * k + 1];
     }
+
+    return y;
 }
 
 vec ParallelSweepMethod::run() {
-    // ...
+    this->transformation();
+
+    matr R; vec partB;
+    std::tie(R, partB) = this->collectInterferElem();
+
+    vec partY = this->collectPartY(R, partB);
+
+    this->collectFullY(partY);
+    this->collectNotInterferElem();
+
+    return this->collectFullY(partY);
 }

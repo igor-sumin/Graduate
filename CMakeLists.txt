@@ -22,4 +22,5 @@ add_executable(GraduateWork-2022
         SweepMethod/test/SerialAlgorithmComponentTest.h
         SweepMethod/test/common/Profiler.h
         SweepMethod/test/common/TestRunner.h
-        SweepMethod/test/common/BaseComponentTest.h)
+        SweepMethod/test/common/BaseComponentTest.h
+        SweepMethod/test/common/InstrumentalComponentTest.h)
