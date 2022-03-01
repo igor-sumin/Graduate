@@ -12,15 +12,13 @@
 
 class BaseComponentTest {
 public:
-    static void execute(const std::vector<std::function<void()>>& tests) {
+    static void execute(const std::vector<std::function<void()>>& tests, const std::string& name) {
         TestRunner testRunner;
-        str line = "-------------------------------";
 
+        printf("------------ %s ------------\n", name.c_str());
         for (const auto& test : tests) {
-            std::cout << line << std::endl;
             RUN_TEST(testRunner, test);
+            print()
         }
-
-        std::cout << line << std::endl;
     }
 };
