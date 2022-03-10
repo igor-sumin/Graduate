@@ -42,16 +42,48 @@ void ParallelInstrumental::prepareData() {
         std::cin >> threadNums;
     } while(!checkData());
 
-    this->prepareData(n, threadNums);
+    this->prepareData(threadNums);
 }
 
-void ParallelInstrumental::prepareData(size_t n, size_t tN) {
-    N = n;
+void ParallelInstrumental::prepareData(size_t tN) {
     threadNum = tN;
+
+    if (!checkData()) {
+        throw std::invalid_argument("n = " + std::to_string(N) + ", threadNum = " + std::to_string(threadNum));
+    }
+
     blockSize = (int)N / threadNum;
     interSize = (threadNum - 1) * 2;
 
     this->setParallelOptions();
+}
+
+bool ParallelInstrumental::checkData() const {
+    if (N < 7) {
+        std::cerr << "Dimension (N = " << N << ") is too small\n"
+                  << "Parallel computing is not effective for it\n"
+                  << "Enter a larger dimension (N)\n\n";
+
+        return false;
+    }
+
+    if ((N / threadNum) < 3) {
+        std::cerr << "The algorithm is not working for the proportions of the dimension (N) "
+                  << "with the number of computing nodes (threadNum)\n"
+                  << "Enter a larger dimension (N), or reduce the number of computing nodes (threadNum)\n\n";
+
+        return false;
+    }
+
+    vec div = findDivisors((int)N);
+    if (isPrime((int)N) || std::find(div.begin(), div.end(), threadNum) == div.end()) {
+        std::cerr << "It is impossible to split the dimension (N = "<< N << ") into the same blocks (blockSize)\n"
+                  << "Enter the correct values of dimension (N) and number of computing nodes (threadNum)\n\n";
+
+        return false;
+    }
+
+    return true;
 }
 
 void ParallelInstrumental::setParallelOptions() const {
@@ -61,32 +93,18 @@ void ParallelInstrumental::setParallelOptions() const {
     omp_set_num_threads((int)threadNum);
 }
 
-bool ParallelInstrumental::checkData() const {
-    if (N < 7) {
-        std::cout << "Dimension (N = " << N << ") is too small\n"
-                  << "Parallel computing is not effective for it\n"
-                  << "Enter a larger dimension (N)\n\n";
+void ParallelInstrumental::defineDataByTask7() {
+    double total = 12. / (h * h);
 
-        return false;
-    }
+    this->A = createThirdDiagMatr(-(2. * total + 5.), total, total, 1., 0., 0., 1.);
+    this->b = createVecByTask7();
+    this->y = createResByTask7();
+}
 
-    if ((N / threadNum) < 3) {
-        std::cout << "The algorithm is not working for the proportions of the dimension (N) "
-                  << "with the number of computing nodes (threadNum)\n"
-                  << "Enter a larger dimension (N), or reduce the number of computing nodes (threadNum)\n\n";
-
-        return false;
-    }
-
-    vec div = findDivisors((int)N);
-    if (isPrime((int)N) || std::find(div.begin(), div.end(), threadNum) == div.end()) {
-        std::cout << "It is impossible to split the dimension (N = "<< N << ") into the same blocks (blockSize)\n"
-                  << "Enter the correct values of dimension (N) and number of computing nodes (threadNum)\n\n";
-
-        return false;
-    }
-
-    return true;
+void ParallelInstrumental::defineDataByNonTask() {
+    this->A = createThirdDiagMatr(3., 1., 2., 1, -0.5, -0.5, 1);
+    this->b = createVecN();
+    this->y.assign(N, 0.);
 }
 
 vec ParallelInstrumental::createVecN() {
@@ -96,50 +114,47 @@ vec ParallelInstrumental::createVecN() {
     return a;
 }
 
-vec ParallelInstrumental::createVecRand() {
-    std::random_device dev;
-    std::mt19937 gen(dev());
-    vec a(N);
+vec ParallelInstrumental::createVecByTask7() {
+    vec res(N);
+    size_t i;
 
-    #pragma omp parallel for shared(a, N, gen) default(none) if (N > 500)
-    for (int i = 0; i < N; i++)
-        a[i] = gen() % 100;
+    res[0] = 10.; res[N - 1] = 100.;
+    #pragma omp parallel for private(i) shared(N, res, x) default(none) if (N > 500)
+    for (i = 1; i < N - 1; i++) {
+        res[i] = 2110. - 450. * x[i] * x[i];
+    }
 
-    return a;
+    return res;
 }
 
-matr ParallelInstrumental::createThirdDiagMatrI() {
-    matr a(N, vec(N));
+vec ParallelInstrumental::createResByTask7() {
+    vec res(N);
+    size_t i;
 
-    #pragma omp parallel for shared(a, N) default(none) if (N > 500)
+    #pragma omp parallel for private(i) shared(N, res, x) default(none) if (N > 500)
+    for (i = 0; i < N; i++) {
+        res[i] = 10. + 90. * x[i] * x[i];
+    }
+
+    return res;
+}
+
+matr ParallelInstrumental::createThirdDiagMatr(double diag, double upDiag, double downDiag,
+                                               double first, double second,
+                                               double preLast, double last) {
+    matr res(N, vec(N));
+
+    #pragma omp parallel for shared(N, res, diag, upDiag, downDiag) default(none) if (N > 500)
     for (int i = 1; i < N; i++) {
         for (int j = 0; j < N; j++) {
-            a[i][i] = 3.;
-            a[i][i - 1] = 1.;
-            a[i - 1][i] = 2.;
+            res[i][i] = diag;
+            res[i][i - 1] = upDiag;
+            res[i - 1][i] = downDiag;
         }
     }
 
-    a[0][0] = 1.; a[N - 1][N - 1] = 1.;
-    a[0][1] = -0.5; a[N - 1][N - 2] = -0.5;
+    res[0][0] = first;  res[N - 1][N - 1] = last;
+    res[0][1] = second; res[N - 1][N - 2] = preLast;
 
-    return a;
-}
-
-matr ParallelInstrumental::createThirdDiagMatrRand() {
-    std::random_device dev;
-    std::mt19937 gen(dev());
-    matr a(N, vec(N));
-
-    a[0][0] = gen() % 100;
-    #pragma omp parallel for shared(a, N, gen) default(none) if (N > 500)
-    for (int i = 1; i < N; i++) {
-        for (int j = 0; j < N; j++) {
-            a[i][i] = gen() % 100;
-            a[i][i - 1] = gen() % 100;
-            a[i - 1][i] = gen() % 100;
-        }
-    }
-
-    return a;
+    return res;
 }

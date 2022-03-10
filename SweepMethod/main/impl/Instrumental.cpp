@@ -4,20 +4,25 @@
 #include <ctime>
 
 
-void Instrumental::prepareData() {
+Instrumental::Instrumental(size_t n, TASK task_) {
+    N = n;
+    node = n + 1;
+    h = 1 / static_cast<double>(n);
+    x = std::move(this->getGridNodes());
+
+    u.assign(node, 0.);
+    v.assign(node, 0.);
+
+    task = task_;
 }
 
-bool Instrumental::checkData() const {
-	return true;
-}
+vec Instrumental::getGridNodes() const {
+    vec res(node);
+    for (int i = 0; i < node; i++) {
+        res[i] = (double)i * h;
+    }
 
-void Instrumental::setN(size_t n) {
-	N = n;
-}
-
-void Instrumental::setUV(vec& u_, vec& v_) {
-	u = u_;
-	v = v_;
+    return res;
 }
 
 std::tuple<size_t, size_t, vec, vec> Instrumental::getAllFields() const {

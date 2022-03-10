@@ -12,45 +12,50 @@ private:
     static vec findDivisors(int num);
 
 protected:
+    matr A;
+    vec b, y;
+
     size_t threadNum, blockSize, interSize;
 
 public:
-    ParallelInstrumental() : ParallelInstrumental(5, 0, -1, -1) {}
+    ParallelInstrumental() = default;
 
-    ParallelInstrumental(size_t n, size_t tN) : Instrumental(n) {
-        this->prepareData(n, tN);
+    ParallelInstrumental(size_t n, size_t tN) : ParallelInstrumental(n, tN, TASK::NON_TASK) {}
+
+    ParallelInstrumental(size_t n, size_t tN, TASK task) : Instrumental(n, task) {
+        this->prepareData(tN);
+        this->defineDataByTask();
     }
 
-    ParallelInstrumental(size_t n, size_t threadNum, size_t blockSize, size_t interSize) : Instrumental(n),
-              threadNum(threadNum), blockSize(blockSize), interSize(interSize) {
-        this->setParallelOptions();
+    ParallelInstrumental(matr A_, vec b_) : A(std::move(A_)), b(std::move(b_)) {
+        this->prepareData();
+        this->defineDataByTask();
     }
 
     void setParallelOptions() const;
 
     // Preparing user data for parallel computing
-    void prepareData(size_t n, size_t threadNum);
+    void prepareData(size_t threadNum);
 
     void prepareData() override;
+
+    void defineDataByTask7() override;
+
+    void defineDataByNonTask() override;
 
     // Checking for multiplicity of @N and @THREAD_NUM
     bool checkData() const override;
 
-    /*
-     * Creating a tridiagonal matrix with dimension @N x @N
-     *
-     * side lower diagonal = 1
-     * side upper diagonal = 2
-     * main diagonal	   = 3
-    */
-    matr createThirdDiagMatrI();
-
-    // Creating a matrix with random values from 0 to 100 with dimension @N x @N
-    matr createThirdDiagMatrRand();
+    matr createThirdDiagMatr(double diag, double upDiag, double downDiag,
+                             double first, double second,
+                             double preLast, double last);
 
     // Creating a vector from 0 to @N with dimension @N
     vec createVecN();
 
-    // Creating a vector with random values from 0 to 100 with dimension @N
-    vec createVecRand();
+    // Creating a vector right part for task 7
+    vec createVecByTask7();
+
+    // Creating a vector of result for task 7
+    vec createResByTask7();
 };

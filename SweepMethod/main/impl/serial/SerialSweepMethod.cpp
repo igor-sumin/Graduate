@@ -28,7 +28,7 @@ void SerialSweepMethod::setAllFields(const vec& v, const vec& u, size_t N, size_
     this->gamma = gamma_;
 }
 
-vec SerialSweepMethod::run() {
+vec SerialSweepMethod::method() {
     vec alpha(N), beta(N);
     vec y(node);
 
@@ -36,8 +36,8 @@ vec SerialSweepMethod::run() {
     alpha[0] = kappa.first / gamma.first;
     beta[0] = mu.first / gamma.first;
     for (size_t i = 0; i < N - 1; i++) {
-         alpha[i + 1] = B[i] / (C[i] - A[i] * alpha[i]);
-         beta[i + 1] = (Phi[i] + A[i] * beta[i]) / (C[i] - A[i] * alpha[i]);
+        alpha[i + 1] = B[i] / (C[i] - A[i] * alpha[i]);
+        beta[i + 1] = (Phi[i] + A[i] * beta[i]) / (C[i] - A[i] * alpha[i]);
     }
 
     // reverse motion
@@ -47,4 +47,8 @@ vec SerialSweepMethod::run() {
     }
 
     return y;
+}
+
+vec SerialSweepMethod::run() {
+    return this->method();
 }

@@ -2,41 +2,45 @@
 
 
 void SerialInstrumental::prepareData() {
-    this->getGridNodes();
+    if (!checkData()) {
+        throw std::invalid_argument("n = " + std::to_string(N));
+    }
 }
 
 bool SerialInstrumental::checkData() const {
+    if (N < 0) {
+        std::cerr << "Dimension (N = " << N << ") can't be negative.\n"
+                << "Enter a positive dimension number (N)\n\n";
+
+        return false;
+    }
+
     return true;
 }
 
-std::tuple<double, vec, vec, vec, vec> SerialInstrumental::getAllFields() {
-    return std::make_tuple(h, x, A, C, B);
+void SerialInstrumental::defineDataByTask7() {
+    double total = 12. / (h * h);
+
+    A.assign(N - 1, total);
+    C.assign(N - 1, 2. * total + 5.);
+    B.assign(N - 1, total);
+
+    mu = std::make_pair(10., 100.);
+    kappa = std::make_pair(0., 0.);
+    gamma = std::make_pair(1., 1.);
+
+    for (size_t i = 0; i < node - 2; i++) {
+        Phi[i] = 450. * x[i + 1] * x[i + 1] - 2110.;
+    }
 }
 
+void SerialInstrumental::defineDataByNonTask() {
+    A.assign(N - 1, 3.);
+    C.assign(N - 1, 3.5);
+    B.assign(N - 1, 3.);
+    Phi.assign(N - 1, 1.);
 
-vec SerialInstrumental::getGridNodes() {
-    vec res(node);
-    for (int i = 0; i < node; i++) {
-        res[i] = (double)i * h;
-    }
-
-    return res;
-}
-
-matr SerialInstrumental::createMatr() {
-    matr res(node, vec(node));
-
-    #pragma omp parallel shared(res, node, C, A, B) default(none) if (node > 500)
-    for (size_t i = 1; i < node; i++) {
-        for (size_t j = 0; j < node; j++) {
-            res[i][i]     = -C[0];
-            res[i][i - 1] = A[0];
-            res[i - 1][i] = B[0];
-        }
-    }
-
-    res[0][0] = 1.; res[node - 1][node - 1] = 1.;
-    res[0][1] = 0.; res[node - 1][node - 2] = 0.;
-
-    return res;
+    mu = std::make_pair(1., 1.);
+    kappa = std::make_pair(0., 0.);
+    gamma = std::make_pair(1., 1.);
 }

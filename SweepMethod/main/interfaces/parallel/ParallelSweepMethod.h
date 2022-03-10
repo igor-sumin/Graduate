@@ -9,8 +9,6 @@
 
 class ParallelSweepMethod : public ParallelInstrumental, public AbstractSweepMethod {
 protected:
-	matr A;
-	vec b, y;
 
     // preprocessing Upper Left Corner of the matrix R
     void preULR(matr& R);
@@ -21,15 +19,11 @@ protected:
 public:
     ParallelSweepMethod() = default;
 
-    ParallelSweepMethod(size_t n, size_t threadNum) : ParallelInstrumental(n, threadNum) {
-        this->A = createThirdDiagMatrI();
-        this->b = createVecN();
-        this->y.assign(N, 0.);
-    }
+    ParallelSweepMethod(size_t n, size_t threadNum) : ParallelSweepMethod(n, threadNum, TASK::NON_TASK) {}
 
-	ParallelSweepMethod(matr A_, vec b_) : A(std::move(A_)), b(std::move(b_)) {
-        this->prepareData();
-    }
+    ParallelSweepMethod(size_t n, size_t threadNum, TASK task) : ParallelInstrumental(n, threadNum, task) {}
+
+	ParallelSweepMethod(matr A, vec b) : ParallelInstrumental(std::move(A), std::move(b)) {}
 
     // Getting protected fields
     std::tuple<size_t, size_t, size_t, size_t, matr, vec, vec> getAllFields() const;
