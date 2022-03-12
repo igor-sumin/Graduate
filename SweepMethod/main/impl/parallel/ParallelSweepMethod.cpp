@@ -184,7 +184,7 @@ vec ParallelSweepMethod::collectPartY(const matr& R, const vec& partB) {
         phi[i - 1] = -partB[i];
     }
 
-    SerialSweepMethod ssm(a_, c_, b_, phi, kappa, mu, gamma);
+    SerialSweepMethod ssm(a_, c_, b_, phi, kappa, mu, gamma, Task::TASK::NON_TASK);
     vec partY = ssm.run();
 
     #pragma omp parallel for private(i) shared(partY, interSize) default(none)

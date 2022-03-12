@@ -4,24 +4,56 @@
 #include <ctime>
 
 
-void Instrumental::prepareData() {
+Instrumental::Instrumental(size_t n, TASK task_) {
+    N = n;
+    node = n + 1;
+    h = 1 / static_cast<double>(n);
+    x = std::move(this->getGridNodes());
+
+    u.assign(node, 0.);
+    v.assign(node, 0.);
+
+    task = task_;
 }
 
-bool Instrumental::checkData() const {
-	return true;
+vec Instrumental::getGridNodes() const {
+    vec res(node);
+    for (int i = 0; i < node; i++) {
+        res[i] = (double)i * h;
+    }
+
+    return res;
 }
 
-void Instrumental::setN(size_t n) {
-	N = n;
+std::tuple<size_t, size_t, double, vec, vec, vec, Task::TASK> Instrumental::getAllFields() const {
+	return std::make_tuple(N, node, h,
+                           x, u, v,
+                           task
+    );
 }
 
-void Instrumental::setUV(vec& u_, vec& v_) {
-	u = u_;
-	v = v_;
+void Instrumental::setAllFields(size_t n, size_t node_, double h_,
+                                const vec& x_, const vec& v_, const vec& u_,
+                                const Task::TASK& task_) {
+    this->N = n;
+    this->node = node_;
+    this->h = h_;
+    this->x = x_;
+    this->v = v_;
+    this->u = u_;
+    this->task = task_;
 }
 
-std::tuple<size_t, size_t, vec, vec> Instrumental::getAllFields() const {
-	return std::make_tuple(N, node, u, v);
+vec Instrumental::createResByTask7() {
+    vec res(N + 1);
+    size_t i;
+
+    #pragma omp parallel for private(i) shared(N, res, x) default(none) if (N > 500)
+    for (i = 0; i < N + 1; i++) {
+        res[i] = 10. + 90. * x[i] * x[i];
+    }
+
+    return res;
 }
 
 void Instrumental::printVec(const vec& a, const str& name) {
@@ -58,7 +90,7 @@ void Instrumental::printMatr(const matr& a, const str& name) {
 double Instrumental::calcR(const vec& x, const vec& b) const {
 	double R = 0.;
 
-	for (int i = 0; i < node; i++) {
+	for (int i = 0; i < N; i++) {
 		R = fmax(R, fabs(b[i] - x[i]));
 	}
 
@@ -84,15 +116,35 @@ vec Instrumental::calcMatrVecMult(const matr& A, const vec& b) {
 double Instrumental::calcZ() const {
 	double Z = 0.;
 
-	for (int i = 0; i < node; i++) {
+	for (int i = 0; i < N; i++) {
 		Z = fmax(Z, fabs(u[i] - v[i]));
 	}
 
 	return Z;
 }
 
+matr Instrumental::createThirdDiagMatr(double diag, double upDiag, double downDiag,
+                                               double first, double second,
+                                               double preLast, double last) {
+    matr res(N, vec(N));
+
+    #pragma omp parallel for shared(N, res, diag, upDiag, downDiag) default(none) if (N > 500)
+    for (int i = 1; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            res[i][i] = diag;
+            res[i][i - 1] = upDiag;
+            res[i - 1][i] = downDiag;
+        }
+    }
+
+    res[0][0] = first;  res[N - 1][N - 1] = last;
+    res[0][1] = second; res[N - 1][N - 2] = preLast;
+
+    return res;
+}
+
 bool Instrumental::compareDouble(double a, double b) {
-    return std::fabs(a - b) <= EPS;
+    return std::fabs(a - b) < EPS;
 }
 
 bool Instrumental::compareMatr(const matr& a, const matr& b) {
@@ -119,4 +171,8 @@ bool Instrumental::compareVec(const vec& a, const vec& b) {
     }
 
     return true;
+}
+
+const vec &Instrumental::getU() const {
+    return u;
 }
