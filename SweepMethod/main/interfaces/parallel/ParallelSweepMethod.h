@@ -23,13 +23,7 @@ public:
 
     ParallelSweepMethod(size_t n, size_t threadNum, TASK task) : ParallelInstrumental(n, threadNum, task) {}
 
-	ParallelSweepMethod(matr A, vec b) : ParallelInstrumental(std::move(A), std::move(b)) {}
-
-    // Getting protected fields
-    std::tuple<size_t, size_t, size_t, size_t, matr, vec, vec> getAllFields() const;
-
-    // Setting protected fields
-    void setAllFields(size_t N, size_t threadNum, size_t blockSize, size_t classicSize, const matr& A_, const vec& b_, const vec& y_);
+	ParallelSweepMethod(matr A, vec b, vec y) : ParallelInstrumental(std::move(A), std::move(b), std::move(y)) {}
 
     /*
      * 1.

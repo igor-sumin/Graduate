@@ -25,12 +25,27 @@ using str = std::string;
 
 class Instrumental : public Task {
 protected:
-    size_t N, node;
+    size_t N;
     double h;
     vec x;
 
 	vec u, v;
     TASK task;
+
+    virtual void getDataByTask() {
+        switch (task) {
+            case TASK::TASK_7:
+                this->defineDataByTask7();
+                return;
+
+            case TASK::NON_TASK:
+                this->defineDataByNonTask();
+                return;
+
+            default:
+                throw std::invalid_argument(Task::getValue(task));
+        }
+    }
 
 public:
 	Instrumental() : Instrumental(5) {}
@@ -54,11 +69,22 @@ public:
 	// Calculating of the error estimate of the scheme
 	double calcZ() const;
 
+    const vec &getU() const;
+
+    matr createThirdDiagMatr(double diag = 1., double upDiag = 3., double downDiag = 2.,
+                             double first = 0.5, double second = 0.5,
+                             double preLast = 0.5, double last = 0.5);
+
 	// Matrix-vector multiplication : @A x @b
 	static vec calcMatrVecMult(const matr& A, const vec& b);
 
 	// Getting protected fields
-	std::tuple<size_t, size_t, vec, vec> getAllFields() const;
+	std::tuple<size_t, double, vec, vec, vec, TASK> getAllFields() const;
+
+    // Setting protected fields
+    void setAllFields(size_t N, double h,
+                      const vec& x, const vec& u, const vec& v,
+                      const TASK& task);
 
     // Compare of two doubles
     static bool compareDouble(double a, double b);

@@ -24,15 +24,20 @@ public:
 
     ParallelInstrumental(size_t n, size_t tN, TASK task) : Instrumental(n, task) {
         this->prepareData(tN);
-        this->defineDataByTask();
+        this->getDataByTask();
     }
 
-    ParallelInstrumental(matr A_, vec b_) : A(std::move(A_)), b(std::move(b_)) {
+    ParallelInstrumental(matr A_, vec b_, vec y_) : A(std::move(A_)), b(std::move(b_)), y(std::move(y_)) {
         this->prepareData();
-        this->defineDataByTask();
     }
 
     void setParallelOptions() const;
+
+    // Getting protected fields
+    std::tuple<size_t, size_t, size_t, size_t, matr, vec, vec> getAllFields() const;
+
+    // Setting protected fields
+    void setAllFields(size_t N, size_t threadNum, size_t blockSize, size_t classicSize, const matr& A_, const vec& b_, const vec& y_);
 
     // Preparing user data for parallel computing
     void prepareData(size_t threadNum);
@@ -45,10 +50,6 @@ public:
 
     // Checking for multiplicity of @N and @THREAD_NUM
     bool checkData() const override;
-
-    matr createThirdDiagMatr(double diag, double upDiag, double downDiag,
-                             double first, double second,
-                             double preLast, double last);
 
     // Creating a vector from 0 to @N with dimension @N
     vec createVecN();

@@ -93,12 +93,28 @@ void ParallelInstrumental::setParallelOptions() const {
     omp_set_num_threads((int)threadNum);
 }
 
+std::tuple<size_t, size_t, size_t, size_t, matr, vec, vec> ParallelInstrumental::getAllFields() const {
+    return std::make_tuple(N, threadNum, blockSize, interSize, A, b, y);
+}
+
+void ParallelInstrumental::setAllFields(size_t N, size_t threadNum_, size_t blockSize_, size_t interSize_, const matr& A_, const vec& b_, const vec& y_) {
+    this->N = N;
+    this->threadNum = threadNum_;
+    this->blockSize = blockSize_;
+    this->interSize = interSize_;
+    this->A = A_;
+    this->b = b_;
+    this->y = y_;
+}
+
 void ParallelInstrumental::defineDataByTask7() {
     double total = 12. / (h * h);
 
     this->A = createThirdDiagMatr(-(2. * total + 5.), total, total, 1., 0., 0., 1.);
     this->b = createVecByTask7();
-    this->y = createResByTask7();
+    this->u = createResByTask7();
+
+    this->y.assign(N, 0.);
 }
 
 void ParallelInstrumental::defineDataByNonTask() {
@@ -135,26 +151,6 @@ vec ParallelInstrumental::createResByTask7() {
     for (i = 0; i < N; i++) {
         res[i] = 10. + 90. * x[i] * x[i];
     }
-
-    return res;
-}
-
-matr ParallelInstrumental::createThirdDiagMatr(double diag, double upDiag, double downDiag,
-                                               double first, double second,
-                                               double preLast, double last) {
-    matr res(N, vec(N));
-
-    #pragma omp parallel for shared(N, res, diag, upDiag, downDiag) default(none) if (N > 500)
-    for (int i = 1; i < N; i++) {
-        for (int j = 0; j < N; j++) {
-            res[i][i] = diag;
-            res[i][i - 1] = upDiag;
-            res[i - 1][i] = downDiag;
-        }
-    }
-
-    res[0][0] = first;  res[N - 1][N - 1] = last;
-    res[0][1] = second; res[N - 1][N - 2] = preLast;
 
     return res;
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 class Task {
-protected:
+public:
     enum class TASK { NON_TASK, TASK_7 };
 
     static inline std::string getValue(TASK v) {
@@ -15,21 +15,7 @@ protected:
         }
     }
 
-    virtual void defineDataByTask() {
-        switch (task) {
-            case TASK::TASK_7:
-                this->defineDataByTask7();
-                return;
-
-            case TASK::NON_TASK:
-                this->defineDataByNonTask();
-                return;
-
-            default:
-                throw std::invalid_argument(Instrumental::getValue(task));
-        }
-    }
-
+protected:
     virtual void defineDataByTask7() = 0;
 
     virtual void defineDataByNonTask() = 0;

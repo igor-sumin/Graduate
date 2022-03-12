@@ -19,7 +19,20 @@ public:
 
     SerialInstrumental(size_t n, TASK task) : Instrumental(n, task) {
         this->prepareData();
-        this->defineDataByTask();
+        this->getDataByTask();
+    }
+
+    SerialInstrumental(vec a, vec c, vec b, vec phi, pairs kappa_, pairs mu_, pairs gamma_) :
+        SerialInstrumental(std::move(a), std::move(c), std::move(b), std::move(phi), kappa_, mu_, gamma_, TASK::NON_TASK)
+    {}
+
+    SerialInstrumental(vec a, vec c, vec b, vec phi, pairs kappa_, pairs mu_, pairs gamma_, TASK task_) :
+        Instrumental(a.size(), task_),
+            A(std::move(a)), C(std::move(c)), B(std::move(b)),
+            Phi(std::move(phi)),
+            kappa(std::move(kappa_)), mu(std::move(mu_)), gamma(std::move(gamma_))
+    {
+        this->prepareData();
     }
 
     // Preparing user data for serial computing
@@ -30,4 +43,11 @@ public:
     void defineDataByTask7() override;
 
     void defineDataByNonTask() override;
+
+    // Setting protected fields
+    void setAllFields(const vec& A, const vec& C, const vec& B,
+                      const vec& Phi_, pairs kappa_, pairs mu_, pairs gamma_);
+
+    // Getting protected fields
+    std::tuple<vec, vec, vec, vec, pairs, pairs, pairs> getAllFields() const;
 };
