@@ -2,6 +2,20 @@
 #include "main/interfaces/parallel/ParallelSweepMethod.h"
 
 
+std::tuple<size_t, size_t, size_t, size_t, matr, vec, vec> ParallelSweepMethod::getAllFields() const {
+    return std::make_tuple(N, threadNum, blockSize, interSize, A, b, y);
+}
+
+void ParallelSweepMethod::setAllFields(size_t N, size_t threadNum, size_t blockSize, size_t interSize, const matr& A_, const vec& b_, const vec& y_) {
+    this->N = N;
+    this->threadNum = threadNum;
+    this->blockSize = blockSize;
+    this->interSize = interSize;
+    this->A = A_;
+    this->b = b_;
+    this->y = y_;
+}
+
 void ParallelSweepMethod::transformation() {
     size_t i, j, k, h;
     double coef;

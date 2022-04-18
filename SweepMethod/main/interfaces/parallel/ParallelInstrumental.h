@@ -12,51 +12,45 @@ private:
     static vec findDivisors(int num);
 
 protected:
-    matr A;
-    vec b, y;
-
     size_t threadNum, blockSize, interSize;
 
 public:
-    ParallelInstrumental() = default;
+    ParallelInstrumental() : ParallelInstrumental(5, 0, -1, -1) {}
 
-    ParallelInstrumental(size_t n, size_t tN) : ParallelInstrumental(n, tN, TASK::NON_TASK) {}
-
-    ParallelInstrumental(size_t n, size_t tN, TASK task) : Instrumental(n, task) {
-        this->prepareData(tN);
-        this->getDataByTask();
+    ParallelInstrumental(size_t n, size_t tN) : Instrumental(n) {
+        this->prepareData(n, tN);
     }
 
-    ParallelInstrumental(matr A_, vec b_, vec y_) : A(std::move(A_)), b(std::move(b_)), y(std::move(y_)) {
-        this->prepareData();
+    ParallelInstrumental(size_t n, size_t threadNum, size_t blockSize, size_t interSize) : Instrumental(n),
+              threadNum(threadNum), blockSize(blockSize), interSize(interSize) {
+        this->setParallelOptions();
     }
 
     void setParallelOptions() const;
 
-    // Getting protected fields
-    std::tuple<size_t, size_t, size_t, size_t, matr, vec, vec> getAllFields() const;
-
-    // Setting protected fields
-    void setAllFields(size_t N, size_t threadNum, size_t blockSize, size_t classicSize, const matr& A_, const vec& b_, const vec& y_);
-
     // Preparing user data for parallel computing
-    void prepareData(size_t threadNum);
+    void prepareData(size_t n, size_t threadNum);
 
     void prepareData() override;
-
-    void defineDataByTask7() override;
-
-    void defineDataByNonTask() override;
 
     // Checking for multiplicity of @N and @THREAD_NUM
     bool checkData() const override;
 
+    /*
+     * Creating a tridiagonal matrix with dimension @N x @N
+     *
+     * side lower diagonal = 1
+     * side upper diagonal = 2
+     * main diagonal	   = 3
+    */
+    matr createThirdDiagMatrI();
+
+    // Creating a matrix with random values from 0 to 100 with dimension @N x @N
+    matr createThirdDiagMatrRand();
+
     // Creating a vector from 0 to @N with dimension @N
     vec createVecN();
 
-    // Creating a vector right part for task 7
-    vec createVecByTask7();
-
-    // Creating a vector of result for task 7
-    vec createResByTask7();
+    // Creating a vector with random values from 0 to 100 with dimension @N
+    vec createVecRand();
 };
