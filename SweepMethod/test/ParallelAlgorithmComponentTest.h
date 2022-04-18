@@ -473,7 +473,7 @@ public:
             psm.transformation();
             this->prepareParallelDataForTest(psm);
 
-            LOG_DURATION("serial");
+            LOG_DURATION("serial")
 
             // 1. extreme part
             size_t last = N - blockSize - 1;
@@ -666,6 +666,24 @@ public:
         ParallelSweepMethod psm(n, tN);
         this->prepareParallelDataForTest(psm);
 
+        A = {
+                {1.000,        0,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000},
+                {300.000, -605.0,  300.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000},
+                {0.000,  300.000, -605.000,  300.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000},
+                {0.000,    0.000,  300.000, -605.000,  300.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000},
+                {0.000,    0.000,    0.000,  300.000, -605.000,  300.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000},
+                {0.000,    0.000,    0.000,    0.000,  300.000, -605.000,  300.000,    0.000,    0.000,    0.000,    0.000,    0.000},
+                {0.000,    0.000,    0.000,    0.000,    0.000,  300.000, -605.000,  300.000,    0.000,    0.000,    0.000,    0.000},
+                {0.000,    0.000,    0.000,    0.000,    0.000,    0.000,  300.000, -605.000,  300.000,    0.000,    0.000,    0.000},
+                {0.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000,  300.000, -605.000,  300.000,    0.000,    0.000},
+                {0.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000,  300.000, -605.000,  300.000,    0.000},
+                {0.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000,  300.000, -605.000,  300.000},
+                {0.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000,    0.000,        0,    1.000}
+        };
+        b = {10.0, 2106.28, 2095.12, 2076.53, 2050.5, 2017.02, 1976.12, 1927.77, 1871.98, 1808.76, 1738.1, 100.0};
+
+        this->setParallelFields(psm);
+
         y = psm.run();
         printVec(y, "test full algorithm");
     }
@@ -760,13 +778,13 @@ public:
                     double a3 = A[i + blockSize - 1][j];
                     double a4 = A[i + blockSize - 1][j + blockSize - 1];
 
-                    if (i == j) {
+                    if (a1 != 0 && a4 != 0) {
                         R[k][l] = a1;
                         R[k + 1][l + 1] = a4;
-                    } else if (i < j) {
+                    } else if (a1 != 0) {
                         R[k][l - 1] = a1;
                         R[k + 1][l] = a3;
-                    } else {
+                    } else if (a4 != 0) {
                         R[k][l + 1] = a2;
                         R[k + 1][l + 2] = a4;
                     }
@@ -858,22 +876,25 @@ public:
             y[i] = partY[k++];
         }
 
+        Instrumental::printVec(y, "y");
+        Instrumental::printVec(res, "res");
+
         Instrumental::compareVec(y, res);
     }
 
     void execute() {
         std::vector<std::function<void()>> tests = {
-            [this]() {this->testTransformation(12, 3); },
-            [this]() { this->testTransformationByTask7(); },
-            [this]() { this->testCollectInterferElemPreprocessing(12, 4); },
-            [this]() { this->testCollectInterferElemPostprocessing(8, 2); },
-            [this]() { this->testOrderingCoefficient(12, 4); },
-            []() { ParallelAlgorithmComponentTest::testCollectPartY(); },
-            [this]() { this->testCollectNotInterferElemPreprocessing(16, 4); },
-            [this]() { this->testCollectNotInterferElemPostprocessing(8, 2); },
-            [this]() {this->testCollectNotInterferElem(16, 4); },
-            [this]() {this->testCollectFullY(8, 2); },
-            [this]() { this->testFullAlgorithm(12, 3); },
+//            [this]() {this->testTransformation(12, 3); },
+//            [this]() { this->testTransformationByTask7(); },
+//            [this]() { this->testCollectInterferElemPreprocessing(12, 4); },
+//            [this]() { this->testCollectInterferElemPostprocessing(8, 2); },
+//            [this]() { this->testOrderingCoefficient(12, 4); },
+//            []() { ParallelAlgorithmComponentTest::testCollectPartY(); },
+//            [this]() { this->testCollectNotInterferElemPreprocessing(16, 4); },
+//            [this]() { this->testCollectNotInterferElemPostprocessing(8, 2); },
+//            [this]() {this->testCollectNotInterferElem(16, 4); },
+//            [this]() {this->testCollectFullY(8, 2); },
+//            [this]() { this->testFullAlgorithm(12, 3); },
             [this]() { this->testTask7(12, 3); }
         };
 

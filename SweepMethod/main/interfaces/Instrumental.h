@@ -9,6 +9,7 @@
 #include <functional>
 #include <algorithm>
 #include <numeric>
+#include "Task.h"
 
 #define print() printf("---\n");
 #define printd(a) printf("%s = %f\n", #a, a);
@@ -22,25 +23,39 @@ using pairs = std::pair<double, double>;
 using str = std::string;
 
 
-class Instrumental {
+class Instrumental : public Task {
 protected:
-	size_t N, node;
+    size_t N;
+    double h;
+    vec x;
+
 	vec u, v;
+    TASK task;
+
+    virtual void getDataByTask() {
+        switch (task) {
+            case TASK::TASK_7:
+                this->defineDataByTask7();
+                return;
+
+            case TASK::NON_TASK:
+                this->defineDataByNonTask();
+                return;
+
+            default:
+                throw std::invalid_argument(Task::getValue(task));
+        }
+    }
 
 public:
 	Instrumental() : Instrumental(5) {}
 
-	explicit Instrumental(size_t n) : N(n), node(n + 1), u(node), v(node) {}
+	explicit Instrumental(size_t n) : Instrumental(n, TASK::NON_TASK) {}
 
-	void setN(size_t n);
+    explicit Instrumental(size_t n, TASK task);
 
-	void setUV(vec& u_, vec& v_);
-
-	// Preparing user data for parallel computing
-	virtual void prepareData();
-
-	// Checking for multiplicity of @N and @THREAD_NUM
-	virtual bool checkData() const;
+    // Getting a grid with nodes
+    vec getGridNodes() const;
 
 	// Printing a vector @a with @name
 	static void printVec(const vec& a, const str& name);
@@ -54,11 +69,22 @@ public:
 	// Calculating of the error estimate of the scheme
 	double calcZ() const;
 
+    const vec &getU() const;
+
+    matr createThirdDiagMatr(double diag = 1., double upDiag = 3., double downDiag = 2.,
+                             double first = 0.5, double second = 0.5,
+                             double preLast = 0.5, double last = 0.5);
+
 	// Matrix-vector multiplication : @A x @b
 	static vec calcMatrVecMult(const matr& A, const vec& b);
 
 	// Getting protected fields
-	std::tuple<size_t, size_t, vec, vec> getAllFields() const;
+	std::tuple<size_t, double, vec, vec, vec, TASK> getAllFields() const;
+
+    // Setting protected fields
+    void setAllFields(size_t N, double h,
+                      const vec& x, const vec& u, const vec& v,
+                      const TASK& task);
 
     // Compare of two doubles
     static bool compareDouble(double a, double b);
