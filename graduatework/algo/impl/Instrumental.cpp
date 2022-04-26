@@ -1,4 +1,4 @@
-#include "main/interfaces/Instrumental.h"
+#include "algo/interfaces/Instrumental.h"
 #include <test/common/TestRunner.h>
 
 #include <ctime>

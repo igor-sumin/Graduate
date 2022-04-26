@@ -3,24 +3,24 @@ project(GraduateWork-2022)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fopenmp")
 
-include_directories(SweepMethod)
+include_directories(graduatework)
 
 add_executable(GraduateWork-2022
-        SweepMethod/main/interfaces/AbstractSweepMethod.h
-        SweepMethod/main/impl/Instrumental.cpp
-        SweepMethod/main/interfaces/Instrumental.h
-        SweepMethod/main/Application.cpp
-        SweepMethod/main/impl/parallel/ParallelSweepMethod.cpp
-        SweepMethod/main/interfaces/parallel/ParallelSweepMethod.h
-        SweepMethod/main/impl/serial/SerialSweepMethod.cpp
-        SweepMethod/main/interfaces/serial/SerialSweepMethod.h
-        SweepMethod/main/impl/parallel/ParallelInstrumental.cpp
-        SweepMethod/main/interfaces/parallel/ParallelInstrumental.h
-        SweepMethod/main/impl/serial/SerialInstrumental.cpp
-        SweepMethod/main/interfaces/serial/SerialInstrumental.h
-        SweepMethod/test/ParallelAlgorithmComponentTest.h
-        SweepMethod/test/SerialAlgorithmComponentTest.h
-        SweepMethod/test/common/Profiler.h
-        SweepMethod/test/common/TestRunner.h
-        SweepMethod/test/common/BaseComponentTest.h
-        SweepMethod/test/common/InstrumentalComponentTest.h)
+        graduatework/algo/interfaces/AbstractSweepMethod.h
+        graduatework/algo/impl/Instrumental.cpp
+        graduatework/algo/interfaces/Instrumental.h
+        graduatework/Application.cpp
+        graduatework/algo/impl/parallel/ParallelSweepMethod.cpp
+        graduatework/algo/interfaces/parallel/ParallelSweepMethod.h
+        graduatework/algo/impl/serial/SerialSweepMethod.cpp
+        graduatework/algo/interfaces/serial/SerialSweepMethod.h
+        graduatework/algo/impl/parallel/ParallelInstrumental.cpp
+        graduatework/algo/interfaces/parallel/ParallelInstrumental.h
+        graduatework/algo/impl/serial/SerialInstrumental.cpp
+        graduatework/algo/interfaces/serial/SerialInstrumental.h
+        graduatework/test/ParallelAlgorithmComponentTest.h
+        graduatework/test/SerialAlgorithmComponentTest.h
+        graduatework/test/common/Profiler.h
+        graduatework/test/common/TestRunner.h
+        graduatework/test/common/BaseComponentTest.h
+        graduatework/test/common/InstrumentalComponentTest.h graduatework/task/impl/Task.h graduatework/task/interfaces/Task.cpp graduatework/task/impl/System.h graduatework/task/impl/Parameters.h graduatework/task/impl/Area.h graduatework/task/impl/Grid.h)

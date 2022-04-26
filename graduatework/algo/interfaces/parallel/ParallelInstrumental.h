@@ -1,6 +1,6 @@
 #pragma once
 
-#include "main/interfaces/Instrumental.h"
+#include "algo/interfaces/Instrumental.h"
 
 
 class ParallelInstrumental : public Instrumental {
@@ -41,7 +41,7 @@ public:
      *
      * side lower diagonal = 1
      * side upper diagonal = 2
-     * main diagonal	   = 3
+     * algo diagonal	   = 3
     */
     matr createThirdDiagMatrI();
 

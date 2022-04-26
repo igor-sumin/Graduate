@@ -2,9 +2,9 @@
 
 #include <utility>
 
-#include "main/interfaces/parallel/ParallelInstrumental.h"
-#include "main/interfaces/AbstractSweepMethod.h"
-#include "main/interfaces/serial/SerialSweepMethod.h"
+#include "algo/interfaces/parallel/ParallelInstrumental.h"
+#include "algo/interfaces/AbstractSweepMethod.h"
+#include "algo/interfaces/serial/SerialSweepMethod.h"
 
 
 class ParallelSweepMethod : public ParallelInstrumental, public AbstractSweepMethod {

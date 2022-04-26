@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "main/interfaces/Instrumental.h"
+#include "algo/interfaces/Instrumental.h"
 
 #define ASSERT_EQUAL(x, y) {                            \
     std::ostringstream __assert_equal_private_os;       \

@@ -1,4 +1,4 @@
-#include "main/interfaces/parallel/ParallelInstrumental.h"
+#include "algo/interfaces/parallel/ParallelInstrumental.h"
 
 #include <ctime>
 

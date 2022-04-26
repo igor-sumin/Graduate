@@ -1,4 +1,4 @@
-#include "main/interfaces/serial/SerialSweepMethod.h"
+#include "algo/interfaces/serial/SerialSweepMethod.h"
 
 #include <utility>
 

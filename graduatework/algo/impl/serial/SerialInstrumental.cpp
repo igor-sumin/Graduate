@@ -1,4 +1,4 @@
-#include "main/interfaces/serial/SerialInstrumental.h"
+#include "algo/interfaces/serial/SerialInstrumental.h"
 
 
 void SerialInstrumental::prepareData() {

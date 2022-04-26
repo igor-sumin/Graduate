@@ -2,8 +2,8 @@
 
 #include <utility>
 
-#include "main/interfaces/serial/SerialInstrumental.h"
-#include "main/interfaces/AbstractSweepMethod.h"
+#include "algo/interfaces/serial/SerialInstrumental.h"
+#include "algo/interfaces/AbstractSweepMethod.h"
 
 
 class SerialSweepMethod : public SerialInstrumental, public AbstractSweepMethod {
@@ -40,9 +40,9 @@ public:
     /*
      * Sequential implementation of sweep method
      *
-     * a   - is the diagonal lying under the main
-     * c   - the main diagonal of the matrix A
-     * b   - the diagonal lying above the main
+     * a   - is the diagonal lying under the algo
+     * c   - the algo diagonal of the matrix A
+     * b   - the diagonal lying above the algo
      * phi - right side
      * x   - vector of solutions
      * kappa, mu, gamma - coefficients

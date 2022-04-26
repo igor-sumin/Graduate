@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <numeric>
 
-#include "main/interfaces/Instrumental.h"
+#include "algo/interfaces/Instrumental.h"
 
 class BaseComponentTest {
 public:

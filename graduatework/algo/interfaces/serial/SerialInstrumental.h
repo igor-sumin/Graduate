@@ -1,6 +1,6 @@
 #pragma once
 
-#include "main/interfaces/Instrumental.h"
+#include "algo/interfaces/Instrumental.h"
 
 #include <utility>
 
@@ -46,7 +46,7 @@ public:
      *
      * side lower diagonal = @a
      * side upper diagonal = @b
-     * main diagonal	   = @c
+     * algo diagonal	   = @c
     */
     matr createMatr();
 };

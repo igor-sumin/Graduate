@@ -1,6 +1,6 @@
 #pragma once
 
-#include <main/interfaces/parallel/ParallelSweepMethod.h>
+#include <algo/interfaces/parallel/ParallelSweepMethod.h>
 #include <test/common/Profiler.h>
 #include <test/common/TestRunner.h>
 #include <test/common/BaseComponentTest.h>
