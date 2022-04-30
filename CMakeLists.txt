@@ -23,4 +23,4 @@ add_executable(GraduateWork-2022
         graduatework/test/common/Profiler.h
         graduatework/test/common/TestRunner.h
         graduatework/test/common/BaseComponentTest.h
-        graduatework/test/common/InstrumentalComponentTest.h graduatework/task/impl/Task.h graduatework/task/interfaces/Task.cpp graduatework/task/impl/System.h graduatework/task/impl/Parameters.h graduatework/task/impl/Area.h graduatework/task/impl/Grid.h)
+        graduatework/test/common/InstrumentalComponentTest.h graduatework/task/interfaces/Task.h graduatework/task/interfaces/System.h graduatework/task/interfaces/tools/Parameters.h graduatework/task/interfaces/tools/Area.h graduatework/task/interfaces/tools/Grid.h graduatework/task/interfaces/InitConditions.h)

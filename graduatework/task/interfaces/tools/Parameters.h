@@ -18,6 +18,19 @@ public:
 
     Parameters(pairs alpha, pairs beta, pairs gamma) : alpha(std::move(alpha)), beta(std::move(beta)), gamma(std::move(gamma)) {}
 
+    vec3<pairs> getData() const {
+        vec3<pairs> res;
+
+        res.assign(3, make_pair(0, 0));
+
+        size_t i = 0;
+        for (const auto& elem : {alpha, beta, gamma}) {
+            res[i++] = elem;
+        }
+
+        return res;
+    }
+
     friend std::ostream &operator<<(std::ostream &os, const Parameters &parameters) {
         return os << "alpha: (" << parameters.alpha.first << ", " << parameters.alpha.second << "), "
                   << "beta: (" << parameters.beta.first << ", " << parameters.beta.second << "), "

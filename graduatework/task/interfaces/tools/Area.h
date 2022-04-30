@@ -1,7 +1,5 @@
 #pragma once
 
-#include <algo/interfaces/Instrumental.h>
-
 #include <utility>
 
 // G U dG = [a, b] x [c, d] x [0, T]
@@ -17,6 +15,19 @@ public:
     Area() = default;
 
     Area(pairs x, pairs y, pairs t) : x(std::move(x)), y(std::move(y)), t(std::move(t)) {}
+
+    vec3<pairs> getData() const {
+        vec3<pairs> res;
+
+        res.assign(3, make_pair(0, 0));
+
+        size_t i = 0;
+        for (const auto& elem : {x, y, t}) {
+            res[i++] = elem;
+        }
+
+        return res;
+    }
 
     friend std::ostream &operator<<(std::ostream &os, const Area &parameters) {
         return os << "x: (" << parameters.x.first << ", " << parameters.x.second << "), "

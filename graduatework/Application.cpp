@@ -1,8 +1,7 @@
 #include <test/ParallelAlgorithmComponentTest.h>
 #include <test/SerialAlgorithmComponentTest.h>
 #include <test/common/InstrumentalComponentTest.h>
-
-#include "task/impl/Task.h"
+#include <task/interfaces/Task.h>
 
 int main(int argc, char** argv) {
 //	ParallelAlgorithmComponentTest p;
@@ -14,19 +13,34 @@ int main(int argc, char** argv) {
 //    InstrumentalComponentTest i;
 //    i.execute();
 
-    Task task;
-    int n1, n2, m;
+    Area area;
+    Grid grid;
     Parameters params;
+    Type type;
 
-    // задаем размер сетки
-    std::cout << "Enter (n1, n2, m):\n";
-    std::cin >> n1 >> n2 >> m;
+//    // задаем размер сетки
+//    std::cout << "Enter (n1, n2, m):\n";
+//    std::cin >> grid;
+//
+//    // задаем параметры для задачи
+//    std::cout << "Enter (alpha1, alpha2), (beta1, beta2), (gamma1, gamma2):\n";
+//    std::cin >> params;
+//
+//    // задаем размер области
+//    std::cout << "Enter [a, b] x [c, d] x [0, T]:\n";
+//    std::cin >> area;
 
-    // задаем параметры для задачи
-    std::cout << "Enter (alpha1, alpha2), (beta1, beta2), (gamma1, gamma2):\n";
-    std::cin >> params;
+    // определение типа НУ
+    std::cout << type;
+    std::cin >> type;
 
-    // задаем
+    InitConditions cond(type);
+    std::cout << cond;
+    std::cin >> cond;
 
-	return 0;
+    // Task task(area, grid, params);
+//    vec3<matr3d<double>> result = task.execute();
+//    Instrumental::printVec3d(result, "u(x, y, t) = ");
+
+    return 0;
 }
