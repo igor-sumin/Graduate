@@ -1,31 +1,41 @@
 #include <task/interfaces/Task.h>
 
 int main(int argc, char** argv) {
-    Area area(std::make_pair(0, 1), std::make_pair(0, 1), std::make_pair(0, 0.0003));
-    Grid grid(5, 5, 3);
-    Parameters params(std::make_pair(3, 1), std::make_pair(4, 1), std::make_pair(2, 4), std::make_pair(20, 1));
-    Type type = Type::Const;
-    vec lambdas = {1., 1., 2.};
+    Area area;
+    Grid grid;
+    Parameters params;
+    Type type = Type::NotSelect;
+    vec lambdas;
+    std::vector<str> paths = {"uLow.txt", "uMid.txt", "uTop.txt"};
 
     // задаем размер сетки
     std::cout << "Enter (n1, n2, m):\n";
+    std::cin >> grid;
+
 
     // задаем параметры для задачи
     std::cout << "Enter (alpha1, alpha2), (beta1, beta2), (omega1, omega2), (gamma1, gamma2):\n";
+    std::cin >> params;
     std::cout << "Enter (lambda1, lambda2, lambda3):\n";
+    for (auto& lambda : lambdas) {
+        std::cin >> lambda;
+    }
 
     // задаем размер области
     std::cout << "Enter [a, b] x [c, d] x [0, T]:\n";
+    std::cin >> area;
 
     // задаем тип НУ
     std::cout << type;
+    std::cin >> type;
 
-    InitConditions cond(type, {10., 15., 20.});
+    InitConditions cond(type);
 
     // задаем НУ
     std::cout << cond;
+    std::cin >> cond;
 
-    Task task(cond, area, grid, params, lambdas);
+    Task task(cond, area, grid, params, lambdas, paths);
     task.execute();
 
     return 0;

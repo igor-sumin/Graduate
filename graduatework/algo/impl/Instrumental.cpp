@@ -37,11 +37,6 @@ void Instrumental::printVec(const vec& a, const str& name) {
 	}
 }
 
-// TODO: доделать
-void printVec3d(const std::vector<std::vector<std::vector<std::vector<double>>>>& a, const str& name) {
-    return;
-}
-
 void Instrumental::printMatr(const matr& a, const str& name) {
 	if (a.size() < 30) {
 		bool first = true;

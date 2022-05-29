@@ -2,13 +2,12 @@
 
 #include <set>
 #include <cmath>
+#include <test/common/TestRunner.h>
 
 const double pi = std::acos(-1);
 
 enum class Type {
     NotSelect, Const, CosX, CosY, CosXCosY
-
-    //
 };
 
 class InitConditions {
@@ -17,13 +16,26 @@ private:
 
     vec3<double> C;
     vec3<double> M;
-    double alpha, beta;
+    size_t alpha, beta;
 
 public:
 
     InitConditions() = default;
 
-    InitConditions(Type type) : type(type) {}
+    explicit InitConditions(Type type)
+        : InitConditions(type, vec(3, 0.), vec(3, 0.), 0., 0.) {}
+
+    InitConditions(Type type, const vec3<double> &c) : type(type), C(c), M(vec()), alpha(0.), beta(0.) {}
+
+    InitConditions(Type type,
+                   const vec3<double> &c,
+                   const vec3<double> &m,
+                   size_t alpha, size_t beta)
+       : type(type),
+         C(c), M(m),
+         alpha(alpha),
+         beta(beta)
+    {}
 
     Type getType() const {
         return type;
@@ -37,11 +49,11 @@ public:
         return M;
     }
 
-    double getAlpha() const {
+    size_t getAlpha() const {
         return alpha;
     }
 
-    double getBeta() const {
+    size_t getBeta() const {
         return beta;
     }
 
@@ -65,7 +77,7 @@ public:
                 return os << "Enter" << c << ", " << m << ", " << alp << ", " << bet << ":\n";
 
             case Type::NotSelect: default:
-                throw std::runtime_error("alarm1");
+                throw std::runtime_error(AppConstansts::ALARM_COND_GET_TYPE);
         }
     }
 
@@ -77,30 +89,37 @@ public:
         };
 
         switch(conditions.getType()) {
-            case Type::Const:
+            case Type::Const: {
                 getConst(conditions.C);
                 break;
+            }
 
-            case Type::CosX:
+            case Type::CosX: {
                 getConst(conditions.C);
                 getConst(conditions.M);
                 in >> conditions.alpha;
-                break;
 
-            case Type::CosY:
+                break;
+            }
+
+            case Type::CosY: {
                 getConst(conditions.C);
                 getConst(conditions.M);
                 in >> conditions.beta;
-                break;
 
-            case Type::CosXCosY:
+                break;
+            }
+
+            case Type::CosXCosY: {
                 getConst(conditions.C);
                 getConst(conditions.M);
                 in >> conditions.alpha >> conditions.beta;
+
                 break;
+            }
 
             case Type::NotSelect: default:
-                throw std::runtime_error("alarm3");
+                throw std::runtime_error(AppConstansts::ALARM_SET_COND_TYPE);
         }
 
         return in;

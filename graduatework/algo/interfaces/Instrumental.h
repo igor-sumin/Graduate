@@ -45,9 +45,6 @@ public:
 	// Printing a vector @a with @name
 	static void printVec(const vec& a, const str& name);
 
-    // Printing a vector @a with @name
-    static void printVec3d(const std::vector<std::vector<std::vector<std::vector<double>>>>& a, const str& name);
-
 	// Printing a matrix @a with @name
 	static void printMatr(const matr& a, const str& name);
 

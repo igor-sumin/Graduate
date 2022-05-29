@@ -10,7 +10,7 @@ public:
     Grid() = default;
 
     Grid(int n1, int n2, int m)
-        : n1(n1), n2(n2), m(m) {}
+        : n1(n1 + 1), n2(n2 + 1), m(m + 1) {}
 
     vec3<int> getData() const {
         vec3<int> res;

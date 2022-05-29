@@ -19,7 +19,7 @@ public:
     vec3<pairs> getData() const {
         vec3<pairs> res;
 
-        res.assign(3, make_pair(0, 0));
+        res.assign(3, std::make_pair(0, 0));
 
         size_t i = 0;
         for (const auto& elem : {x, y, t}) {

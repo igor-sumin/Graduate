@@ -1,11 +1,11 @@
 #include <task/interfaces/Task.h>
 
 int main(int argc, char** argv) {
-    Area area(std::make_pair(0, 1), std::make_pair(0, 1), std::make_pair(0, 0.0003));
-    Grid grid(5, 5, 3);
-    Parameters params(std::make_pair(3, 1), std::make_pair(4, 1), std::make_pair(2, 4), std::make_pair(20, 1));
+    Area area(std::make_pair(0, 1), std::make_pair(0, 1), std::make_pair(0, 0.05));
+    Grid grid(5, 5, 5);
+    Parameters params(std::make_pair(1, 1), std::make_pair(1, 1), std::make_pair(-2, -2), std::make_pair(1, 1));
     Type type = Type::Const;
-    vec lambdas = {1., 1., 2.};
+    vec lambdas(3, 1.);
 
     // задаем размер сетки
     std::cout << "Enter (n1, n2, m):\n";
