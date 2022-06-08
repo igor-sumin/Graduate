@@ -1,9 +1,10 @@
 #include <task/interfaces/Task.h>
+#include <test/ParallelAlgorithmComponentTest.h>
 
 int main(int argc, char** argv) {
-    Area area(std::make_pair(0, 1), std::make_pair(0, 1), std::make_pair(0, 0.0003));
-    Grid grid(5, 5, 3);
-    Parameters params(std::make_pair(3, 1), std::make_pair(4, 1), std::make_pair(2, 4), std::make_pair(20, 1));
+    Area area(std::make_pair(0, 1), std::make_pair(0, 1), std::make_pair(0, 0.003));
+    Grid grid(1, 1, 3);
+    Parameters params(std::make_pair(3, 1), std::make_pair(2, 4), std::make_pair(4, 1), std::make_pair(20, 1));
     Type type = Type::Const;
     vec lambdas = {1., 1., 2.};
 
@@ -20,12 +21,12 @@ int main(int argc, char** argv) {
     // задаем тип НУ
     std::cout << type;
 
-    InitConditions cond(type, {10., 15., 20.});
+    InitConditions cond(type, {0.04, 0.2, 0.64});
 
     // задаем НУ
     std::cout << cond;
 
-    Task task(cond, area, grid, params, lambdas);
+    Task task(cond, area, grid, params, lambdas, true);
     task.execute();
 
     return 0;

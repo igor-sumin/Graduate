@@ -27,6 +27,12 @@ public:
         this->y.assign(N, 0.);
     }
 
+    ParallelSweepMethod(size_t n, vec a_, vec c_, vec b_, vec phi_, pairs kappa_, pairs mu_, pairs gamma_, size_t threadNum) : ParallelInstrumental(n, threadNum) {
+        this->A = createNewMatr(a_, c_, b_, kappa_, gamma_);
+        this->b = createNewVec(phi_, mu_);
+        this->y.assign(N, 0.);
+    }
+
 	ParallelSweepMethod(matr A_, vec b_) : A(std::move(A_)), b(std::move(b_)) {
         this->prepareData();
     }

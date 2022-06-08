@@ -1,6 +1,6 @@
 #include <test/common/Profiler.h>
 #include "algo/interfaces/parallel/ParallelSweepMethod.h"
-
+#include "algorithm"
 
 std::tuple<size_t, size_t, size_t, size_t, matr, vec, vec> ParallelSweepMethod::getAllFields() const {
     return std::make_tuple(N, threadNum, blockSize, interSize, A, b, y);

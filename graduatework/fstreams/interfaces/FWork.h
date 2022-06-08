@@ -14,15 +14,15 @@ protected:
             return false;
         }
 
-        output << std::setprecision(5);
-        output << "Шаг s -------- " << step << "\n";
+        output << std::setprecision(8);
+        output << "Step s -------- " << step << "\n";
 
         loop3(k) {
-            output << "компонента --- " << k << "\n";
+            output << "component --- " << k << "\n";
             // работа с 3 компонентами
             for (size_t j = 0; j < u[k][0].size(); j++) {
                 for (size_t i = 0; i < u[k].size(); i++) {
-                    output << std::setw(9) << u[k][i][j] << " ";
+                    output << std::setw(12) << u[k][i][j] << " ";
                 } output << "\n";
             } output << "\n";
         } output << "\n";
@@ -32,8 +32,21 @@ protected:
     }
 
 public:
-    explicit FWork() {
+    explicit FWork(bool clean) {
         fullPath = AppConstansts::FULL_PATH;
+
+        this->clearFiles(clean);
+    }
+
+    void clearFiles(bool clean) {
+        if (clean) {
+            std::ofstream ofs;
+
+            for (const auto& layer : {AppConstansts::HALF_LAYER, AppConstansts::MAIN_LAYER}) {
+                ofs.open(fullPath + layer + ".txt", std::ofstream::out | std::ofstream::trunc);
+                ofs.close();
+            }
+        }
     }
 
     // Запись данных в файл

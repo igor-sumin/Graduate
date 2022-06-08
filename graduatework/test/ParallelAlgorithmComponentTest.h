@@ -666,6 +666,17 @@ public:
         ParallelSweepMethod psm(n, tN);
         this->prepareParallelDataForTest(psm);
 
+        A = {
+                {1.000,    0.000,    0.000,    0.000,    0.000,    0.000},
+                {1.000, -2.000,  3.000,  0.000,    0.000,    0.000},
+                {0.000,    1, -2,  3.000,  0.000,    0.000},
+                {0.000,    0.000,    1.000, -2.000,  3.000,  0.000},
+                {0.000,    0.000,    0.000,    1.000, -2.000,  3.000},
+                {0.000,    0.000,    0.000,    0.000,    0.000,    1.000}
+        };
+        b = {10.0, 1.0, 2.0, 3.0, 4.0, 100.0};
+
+        this->setParallelFields(psm);
         y = psm.run();
         printVec(y, "test full algorithm");
     }
@@ -863,18 +874,18 @@ public:
 
     void execute() {
         std::vector<std::function<void()>> tests = {
-            [this]() {this->testTransformation(12, 3); },
-            [this]() { this->testTransformationByTask7(); },
-            [this]() { this->testCollectInterferElemPreprocessing(12, 4); },
-            [this]() { this->testCollectInterferElemPostprocessing(8, 2); },
-            [this]() { this->testOrderingCoefficient(12, 4); },
-            []() { ParallelAlgorithmComponentTest::testCollectPartY(); },
-            [this]() { this->testCollectNotInterferElemPreprocessing(16, 4); },
-            [this]() { this->testCollectNotInterferElemPostprocessing(8, 2); },
-            [this]() {this->testCollectNotInterferElem(16, 4); },
-            [this]() {this->testCollectFullY(8, 2); },
-            [this]() { this->testFullAlgorithm(12, 3); },
-            [this]() { this->testTask7(12, 3); }
+//            [this]() {this->testTransformation(12, 3); },
+//            [this]() { this->testTransformationByTask7(); },
+//            [this]() { this->testCollectInterferElemPreprocessing(12, 4); },
+//            [this]() { this->testCollectInterferElemPostprocessing(8, 2); },
+//            [this]() { this->testOrderingCoefficient(12, 4); },
+//            []() { ParallelAlgorithmComponentTest::testCollectPartY(); },
+//            [this]() { this->testCollectNotInterferElemPreprocessing(16, 4); },
+//            [this]() { this->testCollectNotInterferElemPostprocessing(8, 2); },
+//            [this]() {this->testCollectNotInterferElem(16, 4); },
+//            [this]() {this->testCollectFullY(8, 2); },
+            [this]() { this->testFullAlgorithm(6, 2); }
+            // [this]() { this->testTask7(12, 3); }
         };
 
         BaseComponentTest::execute(tests, "Parallel Component Tests");

@@ -126,6 +126,34 @@ matr ParallelInstrumental::createThirdDiagMatrI() {
     return a;
 }
 
+matr ParallelInstrumental::createNewMatr(vec a_, vec c_, vec b_, pairs kappa_, pairs gamma_) {
+    matr a(N, vec(N));
+
+    for (int i = 1; i < N; i++) {
+        for (int j = 0; j < a_.size(); j++) {
+            a[i][i] = c_[j];
+            a[i][i - 1] = a_[j];
+            a[i - 1][i] = b_[j];
+        }
+    }
+
+    a[0][0] = gamma_.first; a[N - 1][N - 1] = gamma_.second;
+    a[0][1] = kappa_.first; a[N - 1][N - 2] = kappa_.second;
+
+    return a;
+}
+
+vec ParallelInstrumental::createNewVec(vec phi_, pairs mu) {
+    vec res(N, 0.);
+
+    res[0] = mu.first; res[N - 1] = mu.second;
+    for (int i = 1; i < N - 1; i++) {
+        res[i] = -phi_[i - 1];
+    }
+
+    return res;
+}
+
 matr ParallelInstrumental::createThirdDiagMatrRand() {
     std::random_device dev;
     std::mt19937 gen(dev());

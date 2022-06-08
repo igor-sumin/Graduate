@@ -50,3 +50,109 @@ void executeSerialSweepLayers() {
         }
     }
 }
+
+loop3(k) {
+    vec a(n2 - 2, A[k]);
+    vec c(n2 - 2, C[k]);
+    vec b(n2 - 2, B[k]);
+    vec phi(n2 - 2, 0.);
+
+    // make right side : -Phi[k]_i0s+0.5 ... -Phi[k]_in2-1s+0.5
+    for (size_t i = 0; i < n1; i++) {
+        for (size_t j = 1; j < n2 - 1; j++) {
+            phi[j - 1] = Phi[k][i][j];
+        }
+    }
+
+    for (size_t j = 1; j < n2 - 1; j++) {
+        SerialSweepMethod ssm(a, c, b, phi, kappa, mu, gamma);
+        vec u = ssm.run();
+
+        for (size_t i = 0; i < n1; i++) {
+            uTop[k][i][j] = u[i];
+        }
+    }
+}
+
+loop3(k) {
+    vec a(n1 - 2, A[k]);
+    vec c(n1 - 2, C[k]);
+    vec b(n1 - 2, B[k]);
+    vec phi(n1 - 2, 0.);
+
+    for (size_t j = 0; j < n2; j++) {
+        for (size_t i = 1; i < n1 - 1; i++) {
+            // -Phi[k]_1js ... -Phi[k]_n1-1js
+            phi[i - 1] = Phi[k][i][j];
+        }
+
+        SerialSweepMethod ssm(a, c, b, phi, kappa, mu, gamma);
+        vec u = ssm.run();
+
+        for (size_t i = 0; i < n1; i++) {
+            uMid[k][i][j] = u[i];
+        }
+    }
+}
+
+loop3(k) {
+    vec a(n2 - 2, A[k]);
+    vec c(n2 - 2, C[k]);
+    vec b(n2 - 2, B[k]);
+    vec phi(n2 - 2, 0.);
+
+    for (size_t i = 0; i < n1; i++) {
+        for (size_t j = 1; j < n2 - 1; j++) {
+            // -Phi[k]_i0s+0.5 ... -Phi[k]_in2-1s+0.5
+            phi[j - 1] = Phi[k][i][j];
+        }
+
+        SerialSweepMethod ssm(a, c, b, phi, kappa, mu, gamma);
+        vec u = ssm.run();
+
+        for (size_t j = 0; j < n2; j++) {
+            uTop[k][i][j] = u[j];
+        }
+    }
+}
+
+for (size_t i = 1; i < n1 - 1; i++) {
+    // -Phi[k]_1js ... -Phi[k]_n1-1js
+    phi.assign(Phi[k][i].begin() + 1, Phi[k][i].end() - 1);
+
+    SerialSweepMethod ssm(a, c, b, phi, kappa, mu, gamma);
+    uMid[k][i] = ssm.run();
+}
+
+for (size_t j = 0; j < n2; j++) {
+    // -Phi[k]_1js ... -Phi[k]_n1-1js
+    for (size_t i = 1; i < n1 - 1; i++) {
+        phi[i - 1] = Phi[k][i][j];
+    }
+
+    SerialSweepMethod ssm(a, c, b, phi, kappa, mu, gamma);
+    vec u = ssm.run();
+
+    for (size_t i = 1; i < n1 - 1; i++) {
+        uMid[k][i][j] = u[i - 1];
+    }
+}
+
+vec a(n2 - 2, A[k]);
+vec c(n2 - 2, C[k]);
+vec b(n2 - 2, B[k]);
+vec phi(n2 - 2, 0.);
+
+for (size_t i = 0; i < n1; i++) {
+    // -Phi[k]_i0s+0.5 ... -Phi[k]_in2-1s+0.5
+    for (size_t j = 1; j < n2 - 1; j++) {
+        phi[j - 1] = Phi[k][i][j];
+    }
+
+    SerialSweepMethod ssm(a, c, b, phi, kappa, mu, gamma);
+    vec u = ssm.run();
+
+    for (size_t j = 1; j < n2 - 1; j++) {
+        uTop[k][i][j] = u[j - 1];
+    }
+}
