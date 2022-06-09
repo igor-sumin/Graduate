@@ -1,0 +1,42 @@
+#include <task/interfaces/Task.h>
+
+int main(int argc, char** argv) {
+    Area area;
+    Grid grid;
+    Parameters params;
+    Type type = Type::NotSelect;
+    vec lambdas;
+    std::vector<str> paths = {"uLow.txt", "uMid.txt", "uTop.txt"};
+
+    // задаем размер сетки
+    std::cout << "Enter (n1, n2, m):\n";
+    std::cin >> grid;
+
+
+    // задаем параметры для задачи
+    std::cout << "Enter (alpha1, alpha2), (beta1, beta2), (omega1, omega2), (gamma1, gamma2):\n";
+    std::cin >> params;
+    std::cout << "Enter (lambda1, lambda2, lambda3):\n";
+    for (auto& lambda : lambdas) {
+        std::cin >> lambda;
+    }
+
+    // задаем размер области
+    std::cout << "Enter [a, b] x [c, d] x [0, T]:\n";
+    std::cin >> area;
+
+    // задаем тип НУ
+    std::cout << type;
+    std::cin >> type;
+
+    InitConditions cond(type);
+
+    // задаем НУ
+    std::cout << cond;
+    std::cin >> cond;
+
+    Task task(cond, area, grid, params, lambdas, paths);
+    task.execute();
+
+    return 0;
+}

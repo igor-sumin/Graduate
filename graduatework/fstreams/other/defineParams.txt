@@ -1,0 +1,40 @@
+void defineLayersParams2() {
+    A.assign(3, std::make_pair(0., 0.));
+    B.assign(3, std::make_pair(0., 0.));
+    C.assign(3, std::make_pair(0., 0.));
+
+    // для 1 и 2 слоев
+    loop3(k) {
+        // tau * lambda_k / h12^2
+        auto common = [&](double h12) {
+            return step[2] * lambda[k] / std::pow(h12, 2);
+        };
+
+        // -0.5 * tau * lambda_k / h12^2
+        auto formulaAB = [&](double h12) {
+            return -0.5 * common(h12);
+        };
+
+        // -(1 + tau * lambda_k / h12^2)
+        auto formulaC = [&](double h12) {
+            return (-1) * (1 + common(h12));
+        };
+
+        // для правой части
+        auto layer = [&](size_t i0, size_t j0, size_t i1, size_t j1, size_t i2, size_t j2,
+                         double h12, const vec2d<double>& u) {
+            return (-1) * (u[k][i0][j0] * (1 - common(h12)) + 0.5 * common(h12) * (u[k][i1][j1] + u[k][i2][j2]) + F[k][i0][j0]);
+        };
+
+        A[k] = B[k] = std::make_pair(formulaAB(step[0]), formulaAB(step[1]));
+        C[k] = std::make_pair(-formulaC(step[0]), -formulaC(step[1]));
+
+        Phi.assign(3, matr2d<pairs>(grid[0], std::vector<pairs>(grid[1], std::make_pair(0., 0.))));
+        for (size_t i = 1; i < grid[0] - 1; i++) {
+            for (size_t j = 1; j < grid[1] - 1; j++) {
+                Phi[k][i][j] = std::make_pair(layer(i, j, i, j - 1, i, j + 1, step[1], uLow),
+                                              layer(i, j, i - 1, j, i + 1, j, step[0], uMid));
+            }
+        }
+    }
+}

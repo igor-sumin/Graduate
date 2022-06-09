@@ -1,0 +1,52 @@
+void executeSerialSweepLayers() {
+    size_t n1 = grid[0];
+    size_t n2 = grid[1];
+
+    pairs kappa = std::make_pair(1., 1.);
+    pairs mu = std::make_pair(0., 0.);
+    pairs gamma = std::make_pair(1., 1.);
+
+    // для 1 слоя
+    loop3(k) {
+        vec a(n1 - 2, A[k].first);
+        vec c(n1 - 2, C[k].first);
+        vec b(n1 - 2, B[k].first);
+        vec phi(n1 - 2, 0.);
+
+        for (size_t j = 0; j < n2; j++) {
+            for (size_t i = 1; i < n1 - 1; i++) {
+                // -Phi[k]_1js ... -Phi[k]_n1-1js
+                phi[i - 1] = Phi[k][i][j].first;
+            }
+
+            SerialSweepMethod ssm(a, c, b, phi, kappa, mu, gamma);
+            vec u = ssm.run();
+
+            for (size_t i = 0; i < n1; i++) {
+                uMid[k][i][j] = u[i];
+            }
+        }
+    }
+
+    // для 2 слоя
+    loop3(k) {
+        vec a(n2 - 2, A[k].second);
+        vec c(n2 - 2, C[k].second);
+        vec b(n2 - 2, B[k].second);
+        vec phi(n2 - 2, 0.);
+
+        for (size_t i = 0; i < n1; i++) {
+            for (size_t j = 1; j < n2 - 1; j++) {
+                // -Phi[k]_i0s+0.5 ... -Phi[k]_in2-1s+0.5
+                phi[j - 1] = Phi[k][i][j].second;
+            }
+
+            SerialSweepMethod ssm(a, c, b, phi, kappa, mu, gamma);
+            vec u = ssm.run();
+
+            for (size_t j = 0; j < n2; j++) {
+                uTop[k][i][j] = u[j];
+            }
+        }
+    }
+}
