@@ -53,4 +53,8 @@ public:
 
     // Creating a vector with random values from 0 to 100 with dimension @N
     vec createVecRand();
+
+    matr createNewMatr(vec a_, vec c_, vec b_, pairs kappa_, pairs gamma_);
+
+    vec createNewVec(vec phi_, pairs mu_);
 };

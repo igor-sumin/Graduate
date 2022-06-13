@@ -72,9 +72,9 @@ protected:
 public:
     Task() = default;
 
-    Task(InitConditions cond_, const Area& area_, const Grid& grid_, const Parameters& params_, const vec3<double>& lambda_)
+    Task(InitConditions cond_, const Area& area_, const Grid& grid_, const Parameters& params_, const vec3<double>& lambda_, bool clear)
             : System(area_, grid_, params_, lambda_),
-              FWork(),
+              FWork(clear),
               cond(std::move(cond_))
     {
         this->definePhi();
@@ -83,6 +83,8 @@ public:
     void defineInitCond() {
         // 0 слой - u[k](x, y, 0) = phi[k](x, y)
         uLow = phi;
+        uMid = phi;
+        uTop = phi;
     }
 
     void defineBorderCond(size_t phase) {
@@ -165,6 +167,7 @@ public:
             std::cout << std::setprecision(5);
             loop3(j) {
                 std::cout << "||u(" << i << ")[" << s << "] - u(" << i << ")[" << s << "]|| = " << this->compare()[j] << "\n";
+                i++;
             } std::cout << "\n";
         }
     }
@@ -178,18 +181,19 @@ public:
 
             // проводим этапы - 1, 2
             loop(phase, 2) {
-                // this->defineBorderCond(phase);
+                this->defineBorderCond(phase);
                 this->defineF(phase);
                 this->defineLayersParams(phase);
                 this->executeSerialSweepLayers(phase);
-
-                FWork::fwrite(uMid, s, AppConstansts::HALF_LAYER);
             }
 
-//            this->getNorm(s);
+            // this->getNorm(s);
+            FWork::fwrite(uMid, s, AppConstansts::HALF_LAYER);
+
             uLow = uTop;
-            uMid.assign(3, matr2d<double>(grid[0], vec(grid[1], 0.)));
-            uTop.assign(3, matr2d<double>(grid[0], vec(grid[1], 0.)));
         }
+
+//        FWork::fread(AppConstansts::HALF_LAYER);
+//        FWork::fread(AppConstansts::MAIN_LAYER);
     }
 };

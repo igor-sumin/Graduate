@@ -4,6 +4,7 @@
 #include <test/common/Profiler.h>
 #include <test/common/TestRunner.h>
 #include <test/common/BaseComponentTest.h>
+#include "SerialAlgorithmComponentTest.h"
 
 class ParallelAlgorithmComponentTest final : public ParallelSweepMethod, public BaseComponentTest {
 private:
@@ -662,10 +663,54 @@ public:
         Instrumental::compareVec(y1, y2);
     }
 
+    void testTimeSerial(int n) {
+        SerialAlgorithmComponentTest s;
+
+        {
+            LOG_DURATION("serial = " + std::to_string(n) + ": ")
+            s.testTask7(n);
+        }
+
+    }
+
+    void testTimeParallel(int n, int tN) {
+        SerialAlgorithmComponentTest s;
+
+        vec A, C, B, phi1, v, Phi;
+
+        pairs mu = std::make_pair(10., 100.);
+        pairs kappa = std::make_pair(0., 0.);
+        pairs gamma = std::make_pair(1., 1.);
+
+        std::tie(A, C, B, phi1, v, Phi) = s.testTask7(n);
+
+        for (double & i : C) {
+            i = -i;
+        }
+
+        ParallelSweepMethod psm(n, A, C, B, phi1, kappa, mu, gamma, tN);
+
+        {
+            LOG_DURATION(std::to_string(n) + ", " + to_string(tN) + ": ")
+            psm.run();
+        }
+    }
+
     void testFullAlgorithm(int n, int tN) {
         ParallelSweepMethod psm(n, tN);
         this->prepareParallelDataForTest(psm);
 
+        A = {
+                {1.000,    0.000,    0.000,    0.000,    0.000,    0.000},
+                {1.000, -2.000,  3.000,  0.000,    0.000,    0.000},
+                {0.000,    1, -2,  3.000,  0.000,    0.000},
+                {0.000,    0.000,    1.000, -2.000,  3.000,  0.000},
+                {0.000,    0.000,    0.000,    1.000, -2.000,  3.000},
+                {0.000,    0.000,    0.000,    0.000,    0.000,    1.000}
+        };
+        b = {10.0, 1.0, 2.0, 3.0, 4.0, 100.0};
+
+        this->setParallelFields(psm);
         y = psm.run();
         printVec(y, "test full algorithm");
     }
@@ -863,20 +908,34 @@ public:
 
     void execute() {
         std::vector<std::function<void()>> tests = {
-            [this]() {this->testTransformation(12, 3); },
-            [this]() { this->testTransformationByTask7(); },
-            [this]() { this->testCollectInterferElemPreprocessing(12, 4); },
-            [this]() { this->testCollectInterferElemPostprocessing(8, 2); },
-            [this]() { this->testOrderingCoefficient(12, 4); },
-            []() { ParallelAlgorithmComponentTest::testCollectPartY(); },
-            [this]() { this->testCollectNotInterferElemPreprocessing(16, 4); },
-            [this]() { this->testCollectNotInterferElemPostprocessing(8, 2); },
-            [this]() {this->testCollectNotInterferElem(16, 4); },
-            [this]() {this->testCollectFullY(8, 2); },
-            [this]() { this->testFullAlgorithm(12, 3); },
-            [this]() { this->testTask7(12, 3); }
+//            [this]() {this->testTransformation(12, 3); },
+//            [this]() { this->testTransformationByTask7(); },
+//            [this]() { this->testCollectInterferElemPreprocessing(12, 4); },
+//            [this]() { this->testCollectInterferElemPostprocessing(8, 2); },
+//            [this]() { this->testOrderingCoefficient(12, 4); },
+//            []() { ParallelAlgorithmComponentTest::testCollectPartY(); },
+//            [this]() { this->testCollectNotInterferElemPreprocessing(16, 4); },
+//            [this]() { this->testCollectNotInterferElemPostprocessing(8, 2); },
+//            [this]() {this->testCollectNotInterferElem(16, 4); },
+//            [this]() {this->testCollectFullY(8, 2); },
+            [this]() { this->testFullAlgorithm(6, 2); }
+            // [this]() { this->testTask7(12, 3); }
         };
 
         BaseComponentTest::execute(tests, "Parallel Component Tests");
+    }
+
+    void executeTime() {
+
+        std::vector<int> nums = { 840, 1680, 3360, 5040 };
+
+        for (int i = 0; i < 2; i++ ) {
+            std::vector<std::function<void()>> tests = {
+                    [this, &nums]() { this->testTimeParallel(nums[3], 8); }
+                    // [this]() { this->testTimeSerial(5040); }
+            };
+
+            BaseComponentTest::execute(tests, "Tests");
+        }
     }
 };

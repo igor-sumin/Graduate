@@ -1,0 +1,29 @@
+void executeSerialSweepLayersPhase(size_t phase, vec2d<double>& uPhase) {
+    size_t n1 = (phase == 0) ? grid[0] : grid[1];
+    size_t n2 = (phase == 0) ? grid[1] : grid[0];
+
+    pairs kappa = std::make_pair(1., 1.);
+    pairs mu = std::make_pair(0., 0.);
+    pairs gamma = std::make_pair(1., 1.);
+
+    loop3(k) {
+        vec a(n1 - 2, A[k]);
+        vec c(n1 - 2, C[k]);
+        vec b(n1 - 2, B[k]);
+        vec phi(n1 - 2, 0.);
+
+        for (size_t ind1 = 0; ind1 < n2; ind1++) {
+            for (size_t ind2 = 1; ind2 < n1 - 1; ind2++) {
+                // -Phi[k]_1js ... -Phi[k]_n1-1js
+                phi[ind2 - 1] = Phi[k][ind2][ind1];
+            }
+
+            SerialSweepMethod ssm(a, c, b, phi, kappa, mu, gamma);
+            vec u = ssm.run();
+
+            for (size_t ind2 = 0; ind2 < n1; ind2++) {
+                uPhase[k][ind2][ind1] = u[ind2];
+            }
+        }
+    }
+}

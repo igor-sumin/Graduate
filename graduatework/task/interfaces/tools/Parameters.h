@@ -8,17 +8,17 @@ class Parameters {
 public:
     // alpha1, alpha2
     pairs alpha;
-    // beta1, beta2
-    pairs beta;
     // omega1, omega2
     pairs omega;
+    // beta1, beta2
+    pairs beta;
     // gamma1, gamma2
     pairs gamma;
 
     Parameters() = default;
 
-    Parameters(pairs alpha, pairs beta, pairs omega, pairs gamma)
-        : alpha(std::move(alpha)), beta(std::move(beta)), omega(std::move(omega)), gamma(std::move(gamma)) {}
+    Parameters(pairs alpha, pairs omega, pairs beta, pairs gamma)
+        : alpha(std::move(alpha)), omega(std::move(omega)), beta(std::move(beta)), gamma(std::move(gamma)) {}
 
     vec3<pairs> getData() const {
         vec3<pairs> res;
@@ -26,7 +26,7 @@ public:
         res.assign(4, std::make_pair(0, 0));
 
         size_t i = 0;
-        for (const auto& elem : {alpha, beta, gamma, omega}) {
+        for (const auto& elem : {alpha, omega, beta, gamma}) {
             res[i++] = elem;
         }
 

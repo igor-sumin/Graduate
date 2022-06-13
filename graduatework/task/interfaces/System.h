@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <utility>
+#include <algo/interfaces/parallel/ParallelSweepMethod.h>
 
 #include "task/interfaces/constants/AppConstants.h"
 #include "algo/interfaces/serial/SerialSweepMethod.h"
@@ -35,6 +36,119 @@ private:
         uLow.assign(3, null);
         uMid.assign(3, null);
         uTop.assign(3, null);
+    }
+
+    pairs kappa, mu, gamma;
+
+protected:
+    // решаем СЛАУ по i = 1, n1 - 1 (горизонтальные ленты)
+    void executeSerialSweepLayersPhase1() {
+        size_t n1 = grid[0];
+        size_t n2 = grid[1];
+
+        loop3(k) {
+            vec a(n2 - 2, A[k]);
+            vec c(n2 - 2, C[k]);
+            vec b(n2 - 2, B[k]);
+            vec phi(n2 - 2, 0.);
+
+            for (size_t i = 1; i < n1 - 1; i++) {
+                // -Phi[k]_1js ... -Phi[k]_n1-1js
+                for (size_t j = 1; j < n2 - 1; j++) {
+                    phi[j - 1] = Phi[k][i][j];
+                }
+
+                SerialSweepMethod ssm(a, c, b, phi, kappa, mu, gamma);
+                vec u = ssm.run();
+
+                for (size_t j = 0; j < n2; j++) {
+                    uMid[k][i][j] = u[j];
+                }
+            }
+        }
+    }
+
+    // решаем СЛАУ по j = 1, n2 - 1 (вертикальные ленты)
+    void executeSerialSweepLayersPhase2() {
+        size_t n1 = grid[0];
+        size_t n2 = grid[1];
+
+        loop3(k) {
+            vec a(n1 - 2, A[k]);
+            vec c(n1 - 2, C[k]);
+            vec b(n1 - 2, B[k]);
+            vec phi(n1 - 2, 0.);
+
+            for (size_t j = 1; j < n2 - 1; j++) {
+                // -Phi[k]_1js ... -Phi[k]_n1-1js
+                for (size_t i = 1; i < n1 - 1; i++) {
+                    phi[i - 1] = Phi[k][i][j];
+                }
+
+                SerialSweepMethod ssm(a, c, b, phi, kappa, mu, gamma);
+                vec u = ssm.run();
+
+                for (size_t i = 0; i < n1; i++) {
+                    uTop[k][i][j] = u[i];
+                }
+            }
+        }
+    }
+
+    // решаем СЛАУ по i = 1, n1 - 1 (горизонтальные ленты)
+    void executeParallelSweepLayersPhase1() {
+        size_t n1 = grid[0];
+        size_t n2 = grid[1];
+
+        loop3(k) {
+            vec a(n2 - 2, A[k]);
+            vec c(n2 - 2, C[k]);
+            vec b(n2 - 2, B[k]);
+            vec phi(n2 - 2, 0.);
+
+            for (size_t i = 1; i < n1 - 1; i++) {
+                // -Phi[k]_1js ... -Phi[k]_n1-1js
+                for (size_t j = 1; j < n2 - 1; j++) {
+                    phi[j - 1] = Phi[k][i][j];
+                }
+
+                ParallelSweepMethod ssm(n1, a, c, b, phi, kappa, mu, gamma, 2);
+                vec u = ssm.run();
+
+                #pragma omp barrier
+                for (size_t j = 0; j < n2; j++) {
+                    uMid[k][i][j] = u[j];
+                }
+            }
+        }
+    }
+
+    // решаем СЛАУ по j = 1, n2 - 1 (вертикальные ленты)
+    void executeParallelSweepLayersPhase2() {
+        size_t n1 = grid[0];
+        size_t n2 = grid[1];
+
+        loop3(k) {
+            vec a(n1 - 2, A[k]);
+            vec c(n1 - 2, C[k]);
+            vec b(n1 - 2, B[k]);
+            vec phi(n1 - 2, 0.);
+
+            for (size_t j = 1; j < n2 - 1; j++) {
+                // -Phi[k]_1js ... -Phi[k]_n1-1js
+                for (size_t i = 1; i < n1 - 1; i++) {
+                    phi[i - 1] = Phi[k][i][j];
+                }
+
+                ParallelSweepMethod ssm(n2, a, c, b, phi, kappa, mu, gamma, 2);
+                vec u = ssm.run();
+
+                #pragma omp barrier
+                for (size_t i = 0; i < n1; i++) {
+                    uTop[k][i][j] = u[i];
+                }
+            }
+        }
     }
 
 public:
@@ -87,9 +201,13 @@ public:
     // нелинейная функция F(u)
     vec2d<double> F;
 
-    // точное решение разностной схемы
-    // v(x, y, t) = { v[k](x, y, t) : k = 1,3 }
-    // vec3<matr3d<double>> v;
+    static bool printVec2d(const vec2d<double>& r, const str& name) {
+        loop3(k) {
+            Instrumental::printMatr(r[k], name + std::to_string(k));
+        }
+
+        return true;
+    }
 
     System() = default;
 
@@ -134,8 +252,8 @@ public:
 
         for (int i = 0; i < grid[0]; i++) {
             for (int j = 0; j < grid[1]; j++) {
-                res[0][i][j] = u[0][i][j] * (params[0].first - u[0][i][j] - params[2].first * u[1][i][j] - params[1].first * u[2][i][j]);
-                res[1][i][j] = u[1][i][j] * (params[0].second - params[2].second * u[0][i][j] - u[1][i][j] - params[1].second * u[2][i][j]);
+                res[0][i][j] = u[0][i][j] * (params[0].first - u[0][i][j] - params[1].first * u[1][i][j] - params[2].first * u[2][i][j]);
+                res[1][i][j] = u[1][i][j] * (params[0].second - params[1].second * u[0][i][j] - u[1][i][j] - params[2].second * u[2][i][j]);
                 res[2][i][j] = u[2][i][j] * (-1. + params[3].first * u[0][i][j] + params[3].second * u[1][i][j]);
             }
         }
@@ -168,7 +286,7 @@ public:
             // для правой части
             auto layer = [&](size_t i0, size_t j0, size_t i1, size_t j1, size_t i2, size_t j2,
                              double h12, const vec2d<double>& u) {
-                return (-1) * (u[k][i0][j0] * (1 - common(h12)) + 0.5 * common(h12) * (u[k][i1][j1] + u[k][i2][j2]) + F[k][i0][j0]);
+                return (-1) * (u[k][i0][j0] * (1 - common(h12)) + 0.5 * common(h12) * (u[k][i1][j1] + u[k][i2][j2]) + (step[2] / 2) * F[k][i0][j0]);
             };
 
 
@@ -177,8 +295,8 @@ public:
                             : formulaAB(step[1]);
 
             C[k] = (phase == 0)
-                        ? -formulaC(step[0])
-                        : -formulaC(step[1]);
+                        ? formulaC(step[0])
+                        : formulaC(step[1]);
 
             if (phase == 0) {
                 for (size_t i = 1; i < grid[0] - 1; i++) {
@@ -200,42 +318,32 @@ public:
         }
     }
 
-    void executeSerialSweepLayersPhase(size_t phase, vec2d<double>& uPhase) {
-        size_t n1 = (phase == 0) ? grid[0] : grid[1];
-        size_t n2 = (phase == 0) ? grid[1] : grid[0];
+    void executeSerialSweepLayers(size_t phase) {
+        kappa = std::make_pair(1., 1.);
+        mu = std::make_pair(0., 0.);
+        gamma = std::make_pair(1., 1.);
 
-        pairs kappa = std::make_pair(1., 1.);
-        pairs mu = std::make_pair(0., 0.);
-        pairs gamma = std::make_pair(1., 1.);
+        if (phase == 0) {
+            this->executeSerialSweepLayersPhase1();
 
-        loop3(k) {
-            vec a(n1 - 2, A[k]);
-            vec c(n1 - 2, C[k]);
-            vec b(n1 - 2, B[k]);
-            vec phi(n1 - 2, 0.);
+        } else if (phase == 1) {
+            this->executeSerialSweepLayersPhase2();
 
-            for (size_t ind1 = 0; ind1 < n2; ind1++) {
-                for (size_t ind2 = 1; ind2 < n1 - 1; ind2++) {
-                    // -Phi[k]_1js ... -Phi[k]_n1-1js
-                    phi[ind2 - 1] = Phi[k][ind2][ind1];
-                }
-
-                SerialSweepMethod ssm(a, c, b, phi, kappa, mu, gamma);
-                vec u = ssm.run();
-
-                for (size_t ind2 = 0; ind2 < n1; ind2++) {
-                    uPhase[k][ind2][ind1] = u[ind2];
-                }
-            }
+        } else {
+            throw std::runtime_error(AppConstansts::ALARM_EXECUTE_LAYERS);
         }
     }
 
-    void executeSerialSweepLayers(size_t phase) {
+    void executeParallelSweepLayers(size_t phase) {
+        kappa = std::make_pair(1., 1.);
+        mu = std::make_pair(0., 0.);
+        gamma = std::make_pair(1., 1.);
+
         if (phase == 0) {
-            this->executeSerialSweepLayersPhase(phase, uMid);
+            this->executeParallelSweepLayersPhase1();
 
         } else if (phase == 1) {
-            this->executeSerialSweepLayersPhase(phase, uTop);
+            this->executeParallelSweepLayersPhase2();
 
         } else {
             throw std::runtime_error(AppConstansts::ALARM_EXECUTE_LAYERS);
