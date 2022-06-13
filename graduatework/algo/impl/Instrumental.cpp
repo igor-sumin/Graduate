@@ -49,7 +49,7 @@ void Instrumental::printMatr(const matr& a, const str& name) {
 					std::cout << ", ";
 				} first = false;
 
-				printf("%8.3f", a[i][j]);
+				printf("%8.20f", a[i][j]);
 			} printf("\n");
 		} std::cout << "\n";
 	}

@@ -28,8 +28,8 @@ public:
     /*
      * Module 7. Model task for estimating computational error (Serial realization)
      */
-    void testTask7() {
-        SerialSweepMethod ssm(5);
+    std::tuple<vec, vec, vec, vec, vec, vec> testTask7(int n) {
+        SerialSweepMethod ssm(n);
         this->prepareSerialDataForTest(ssm);
 
         for (size_t i = 0; i < node; i++) {
@@ -48,6 +48,8 @@ public:
         for (size_t i = 0; i < node - 2; i++) {
             Phi[i] = 450. * x[i + 1] * x[i + 1] - 2110.;
         }
+
+        vec phi1 = Phi;
 
         this->setSerialFields(ssm);
 
@@ -71,11 +73,13 @@ public:
 
         Instrumental::compareDouble(ssm.calcR(res, Phi), 0);
         Instrumental::compareDouble(ssm.calcZ(), 0);
+
+        return std::make_tuple(A, C, B, phi1, v, Phi);
     }
 
     void execute() {
         std::vector<std::function<void()>> tests = {
-                [this]() { this->testTask7(); }
+                [this]() { this->testTask7(5); }
         };
 
         BaseComponentTest::execute(tests, "Serial Component Test");

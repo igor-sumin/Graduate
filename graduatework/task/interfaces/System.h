@@ -201,9 +201,13 @@ public:
     // нелинейная функция F(u)
     vec2d<double> F;
 
-    // точное решение разностной схемы
-    // v(x, y, t) = { v[k](x, y, t) : k = 1,3 }
-    // vec3<matr3d<double>> v;
+    static bool printVec2d(const vec2d<double>& r, const str& name) {
+        loop3(k) {
+            Instrumental::printMatr(r[k], name + std::to_string(k));
+        }
+
+        return true;
+    }
 
     System() = default;
 
@@ -282,7 +286,7 @@ public:
             // для правой части
             auto layer = [&](size_t i0, size_t j0, size_t i1, size_t j1, size_t i2, size_t j2,
                              double h12, const vec2d<double>& u) {
-                return (-1) * (u[k][i0][j0] * (1 - common(h12)) + 0.5 * common(h12) * (u[k][i1][j1] + u[k][i2][j2]) + F[k][i0][j0]);
+                return (-1) * (u[k][i0][j0] * (1 - common(h12)) + 0.5 * common(h12) * (u[k][i1][j1] + u[k][i2][j2]) + (step[2] / 2) * F[k][i0][j0]);
             };
 
 
@@ -291,8 +295,8 @@ public:
                             : formulaAB(step[1]);
 
             C[k] = (phase == 0)
-                        ? -formulaC(step[0])
-                        : -formulaC(step[1]);
+                        ? formulaC(step[0])
+                        : formulaC(step[1]);
 
             if (phase == 0) {
                 for (size_t i = 1; i < grid[0] - 1; i++) {

@@ -181,12 +181,10 @@ public:
 
             // проводим этапы - 1, 2
             loop(phase, 2) {
+                this->defineBorderCond(phase);
                 this->defineF(phase);
                 this->defineLayersParams(phase);
                 this->executeSerialSweepLayers(phase);
-                // this->executeParallelSweepLayers(phase);
-
-                this->defineBorderCond(phase);
             }
 
             // this->getNorm(s);
