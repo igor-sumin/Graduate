@@ -2,11 +2,12 @@
 #include <test/ParallelAlgorithmComponentTest.h>
 
 int main(int argc, char** argv) {
-    Area area(std::make_pair(0, 1), std::make_pair(0, 1), std::make_pair(0, 0.003));
-    Grid grid(10, 10, 300);
+    Area area(std::make_pair(0, 1.6), std::make_pair(0, 1.6), std::make_pair(0, 1));
+    Grid grid(16, 16, 100);
     Parameters params(std::make_pair(3, 1), std::make_pair(2, 4), std::make_pair(4, 1), std::make_pair(20, 1));
-    Type type = Type::Const;
-    vec lambdas = {1., 1., 2.};
+    Type type = Type::CosXCosY;
+    // Type type = Type::Const;
+    vec lambdas = {1., 1., 200.};
 
     // задаем размер сетки
     std::cout << "Enter (n1, n2, m):\n";
@@ -21,7 +22,10 @@ int main(int argc, char** argv) {
     // задаем тип НУ
     std::cout << type;
 
-    InitConditions cond(type, {0.04, 0.2, 0.64});
+    // InitConditions cond(type, {0.05, 0.19, 0.65}, {0.01, -0.001, 0.002}, 1, 1);
+     InitConditions cond(type, {0.04, 0.2, 0.64}, {0.01, -0.02, 0.03}, 1, 1);
+//    InitConditions cond(type, {0.05, 0.21, 0.65}, {0.01, -0.02, 0.03}, 1, 1);
+    // InitConditions cond(type, {0.04, 0.2, 0.64});
 
     // задаем НУ
     std::cout << cond;

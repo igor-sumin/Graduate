@@ -908,18 +908,18 @@ public:
 
     void execute() {
         std::vector<std::function<void()>> tests = {
-//            [this]() {this->testTransformation(12, 3); },
-//            [this]() { this->testTransformationByTask7(); },
-//            [this]() { this->testCollectInterferElemPreprocessing(12, 4); },
-//            [this]() { this->testCollectInterferElemPostprocessing(8, 2); },
-//            [this]() { this->testOrderingCoefficient(12, 4); },
-//            []() { ParallelAlgorithmComponentTest::testCollectPartY(); },
-//            [this]() { this->testCollectNotInterferElemPreprocessing(16, 4); },
-//            [this]() { this->testCollectNotInterferElemPostprocessing(8, 2); },
-//            [this]() {this->testCollectNotInterferElem(16, 4); },
-//            [this]() {this->testCollectFullY(8, 2); },
-            [this]() { this->testFullAlgorithm(6, 2); }
-            // [this]() { this->testTask7(12, 3); }
+            [this]() {this->testTransformation(12, 3); },
+            [this]() { this->testTransformationByTask7(); },
+            [this]() { this->testCollectInterferElemPreprocessing(12, 4); },
+            [this]() { this->testCollectInterferElemPostprocessing(8, 2); },
+            [this]() { this->testOrderingCoefficient(12, 4); },
+            []() { ParallelAlgorithmComponentTest::testCollectPartY(); },
+            [this]() { this->testCollectNotInterferElemPreprocessing(16, 4); },
+            [this]() { this->testCollectNotInterferElemPostprocessing(8, 2); },
+            [this]() {this->testCollectNotInterferElem(16, 4); },
+            [this]() {this->testCollectFullY(8, 2); },
+            [this]() { this->testFullAlgorithm(6, 2); },
+            [this]() { this->testTask7(12, 3); }
         };
 
         BaseComponentTest::execute(tests, "Parallel Component Tests");

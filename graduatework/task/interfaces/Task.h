@@ -29,7 +29,7 @@ protected:
             for (size_t i = 0; i < grid[0]; i++) {
                 for (size_t j = 0; j < grid[1]; j++) {
                     // res[k]_ij = M[k] * cos(pi * a * x_i) * cos(pi * b * y_j)
-                    res[k][i][j] = m[k] * std::cos(pi * (double)alpha * nodes[0][i]) * std::cos(pi * (double)beta * nodes[1][j]);
+                    res[k][i][j] = m[k] * std::cos((pi * (double)alpha * nodes[0][i]) / 16.) * std::cos((pi * (double)beta * nodes[1][j]) / 16);
                 }
             }
         }
@@ -119,7 +119,7 @@ public:
                 }
             }
 
-            return C;
+            return res;
         };
 
         // define type of init cond
@@ -177,7 +177,7 @@ public:
 
         // s = 0, m
         loop(s, grid[2]) {
-            FWork::fwrite(uLow, s, AppConstansts::MAIN_LAYER);
+             // FWork::fwrite(uLow, s, AppConstansts::MAIN_LAYER);
 
             // проводим этапы - 1, 2
             loop(phase, 2) {
@@ -188,10 +188,13 @@ public:
             }
 
             // this->getNorm(s);
-            FWork::fwrite(uMid, s, AppConstansts::HALF_LAYER);
+             // FWork::fwrite(uMid, s, AppConstansts::HALF_LAYER);
 
             uLow = uTop;
         }
+
+        FWork::fwrite(uLow, grid[2], AppConstansts::MAIN_LAYER);
+        FWork::fwrite(uMid, grid[2], AppConstansts::HALF_LAYER);
 
 //        FWork::fread(AppConstansts::HALF_LAYER);
 //        FWork::fread(AppConstansts::MAIN_LAYER);
